@@ -65,14 +65,24 @@ body {
 
 /* Navigation */
 header {
-    position: fixed;
+    position: absolute;
+    /* Scrolls with page, not fixed */
     top: 0;
     width: 100%;
     padding: 20px 0;
-    backdrop-filter: blur(10px);
-    background: rgba(10, 10, 15, 0.8);
+    background: transparent;
+    /* Cleaner look */
     z-index: 1000;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.infinity-symbol {
+    font-size: 32px;
+    color: var(--secondary);
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: 400;
+    /* Standard weight for symbol */
 }
 
 nav {
