@@ -26,6 +26,19 @@ const translations = {
         project_2_title: "Project: Nebula",
         project_2_desc: "Upcoming confidential project. Revolutionizing the way we interact with digital assets.",
         project_status: "In Development",
+
+        // MiniLang Page
+        minilang_hero_title: "Logic Reimagined",
+        minilang_hero_desc: "The world's first competitive visual programming game. Build algorithms, defeat opponents, and master logic without writing a single line of syntax.",
+        minilang_feature_1_title: "Visual Editor",
+        minilang_feature_1_desc: "Drag-and-drop code blocks to create complex logic. Loops, variables, and conditions made intuitive.",
+        minilang_feature_2_title: "PvP Duels",
+        minilang_feature_2_desc: "Real-time algorithmic battles. optimize your code to run faster and cleaner than your opponent.",
+        minilang_feature_3_title: "Community Levels",
+        minilang_feature_3_desc: "Create and publish your own puzzles. Play thousands of levels created by other users.",
+        minilang_tech_title: "Under the Hood",
+        minilang_download: "Download Beta",
+
         footer_privacy: "Privacy",
         footer_terms: "Terms"
     },
@@ -56,6 +69,19 @@ const translations = {
         project_2_title: "Проект: Nebula",
         project_2_desc: "Секретный проект. Скоро мы изменим представление о цифровых активах.",
         project_status: "В разработке",
+
+        // MiniLang Page
+        minilang_hero_title: "Логика. Перезагрузка.",
+        minilang_hero_desc: "Первая в мире соревновательная игра по визуальному программированию. Строй алгоритмы, побеждай соперников и учись думать как программист.",
+        minilang_feature_1_title: "Визуал-Редактор",
+        minilang_feature_1_desc: "Перетаскивай блоки, создавай циклы и условия. Программирование еще никогда не было таким понятным.",
+        minilang_feature_2_title: "PvP Дуэли",
+        minilang_feature_2_desc: "Алгоритмические битвы в реальном времени. Чей код быстрее и короче — тот и победил.",
+        minilang_feature_3_title: "Уровни Сообщества",
+        minilang_feature_3_desc: "Создавай свои головоломки и публикуй их. Или решай тысячи задач от других игроков.",
+        minilang_tech_title: "Технологии",
+        minilang_download: "Скачать Бета",
+
         footer_privacy: "Конфиденциальность",
         footer_terms: "Условия"
     }
