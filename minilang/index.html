@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniLang - by Alpharaon</title>
+    <!-- Pointing up one level with ../ -->
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../minilang.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Unbounded:wght@300;400;700;900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="noise-overlay"></div>
+
+    <header>
+        <nav>
+            <!-- Link back to root index.html -->
+            <div class="logo"><a href="../index.html" style="text-decoration: none; color: inherit;">ALPHARAON</a></div>
+            <div class="nav-links">
+                <a href="../index.html#projects" data-i18n="nav_projects">Back to Projects</a>
+                <div class="lang-switch">
+                    <span class="lang-btn active" data-lang="en">EN</span> /
+                    <span class="lang-btn" data-lang="ru">RU</span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="ml-hero">
+            <div class="ml-hero-content">
+                <h1 data-i18n="minilang_hero_title">Logic Reimagined</h1>
+                <p data-i18n="minilang_hero_desc">The world's first competitive visual programming game.</p>
+                <div class="ml-badge">
+                    <span class="tech-tag">Kotlin</span>
+                    <span class="tech-tag">LibGDX</span>
+                    <span class="tech-tag">Firebase</span>
+                </div>
+            </div>
+            <div class="ml-preview">
+                <!-- Image also needs ../ -->
+                <img src="../robot_preview.png" alt="MiniLang Gameplay" class="device-mockup">
+            </div>
+        </section>
+
+        <section class="ml-features">
+            <div class="feature-card">
+                <div class="icon">🧩</div>
+                <h3 data-i18n="minilang_feature_1_title">Visual Editor</h3>
+                <p data-i18n="minilang_feature_1_desc">Drag-and-drop code blocks to create complex logic.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">⚔️</div>
+                <h3 data-i18n="minilang_feature_2_title">PvP Duels</h3>
+                <p data-i18n="minilang_feature_2_desc">Real-time algorithmic battles.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">∞</div>
+                <h3 data-i18n="minilang_feature_3_title">Community Levels</h3>
+                <p data-i18n="minilang_feature_3_desc">Create and publish your own puzzles.</p>
+            </div>
+        </section>
+
+        <section class="ml-cta">
+            <h2 data-i18n="contact_desc">Ready to play?</h2>
+            <a href="#" class="btn-primary" data-i18n="minilang_download">Download Beta</a>
+        </section>
+    </main>
+
+    <footer>
+        <div class="copyright">
+            &copy; 2026 Alpharaon Inc.
+        </div>
+    </footer>
+
+    <!-- Script points up -->
+    <script src="../script.js"></script>
+</body>
+
+</html>
