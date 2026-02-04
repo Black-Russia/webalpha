@@ -136,39 +136,54 @@ window.openLangModal = function () {
 
 function applyLang(lang) {
     const t = T[lang];
-    document.getElementById('announcement').innerText = t.announcement;
-    document.getElementById('hero-title').innerText = t.heroTitle;
-    document.getElementById('hero-subtitle').innerText = t.heroSub;
-    document.getElementById('section-title').innerText = t.sectionTitle;
-    document.getElementById('loading-text').innerText = t.loading;
-    document.getElementById('footer-about').innerText = t.footerAbout;
-    document.getElementById('footer-privacy').innerText = t.footerPrivacy;
-    document.getElementById('footer-support').innerText = t.footerSupport;
-    document.getElementById('footer-size').innerText = t.footerSize;
-    document.getElementById('footer-shipping').innerText = t.footerShipping;
-    document.getElementById('footer-faq').innerText = t.footerFaq;
-    document.getElementById('footer-contact').innerText = t.footerContact;
-    document.getElementById('size-title').innerText = t.sizeTitle;
-    document.getElementById('size-desc').innerText = t.sizeDesc;
-    document.getElementById('th-height').innerText = t.thHeight;
-    document.getElementById('th-weight').innerText = t.thWeight;
-    document.getElementById('about-title').innerText = t.aboutTitle;
-    document.getElementById('about-p1').innerText = t.aboutP1;
-    document.getElementById('about-p2').innerText = t.aboutP2;
-    document.getElementById('about-values-title').innerText = t.aboutValuesTitle;
-    document.getElementById('values-list').innerHTML = t.values.map(v => `<li>${v}</li>`).join('');
-    document.querySelector('.copyright').innerText = t.copyright;
-    document.getElementById('privacy-title').innerText = t.privacyTitle;
-    document.getElementById('privacy-content').innerHTML = t.privacyContent;
-    document.getElementById('shipping-title').innerText = t.shippingTitle;
-    document.getElementById('shipping-content').innerHTML = t.shippingContent;
-    document.getElementById('faq-title').innerText = t.faqTitle;
-    document.getElementById('faq-content').innerHTML = t.faqContent;
+    if (!t) return;
+
+    // Helper for safe element update
+    const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text;
+    };
+    const setHtml = (id, html) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    };
+
+    setText('announcement', t.announcement);
+    setText('hero-title', t.heroTitle);
+    setText('hero-subtitle', t.heroSub);
+    setText('section-title', t.sectionTitle);
+    setText('loading-text', t.loading);
+    setText('footer-about', t.footerAbout);
+    setText('footer-privacy', t.footerPrivacy);
+    setText('footer-support', t.footerSupport);
+    setText('footer-size', t.footerSize);
+    setText('footer-shipping', t.footerShipping);
+    setText('footer-faq', t.footerFaq);
+    setText('footer-contact', t.footerContact);
+    setText('size-title', t.sizeTitle);
+    setText('size-desc', t.sizeDesc);
+    setText('th-height', t.thHeight);
+    setText('th-weight', t.thWeight);
+    setText('about-title', t.aboutTitle);
+    setText('about-p1', t.aboutP1);
+    setText('about-p2', t.aboutP2);
+    setText('about-values-title', t.aboutValuesTitle);
+    setHtml('values-list', t.values.map(v => `<li>${v}</li>`).join(''));
+
+    const copyright = document.querySelector('.copyright');
+    if (copyright) copyright.innerText = t.copyright;
+
+    setText('privacy-title', t.privacyTitle);
+    setHtml('privacy-content', t.privacyContent);
+    setText('shipping-title', t.shippingTitle);
+    setHtml('shipping-content', t.shippingContent);
+    setText('faq-title', t.faqTitle);
+    setHtml('faq-content', t.faqContent);
 
     // Category filters translations
-    document.getElementById('filter-all').innerText = t.filterAll;
-    document.getElementById('filter-clothing').innerText = t.filterClothing;
-    document.getElementById('filter-accessory').innerText = t.filterAccessory;
+    setText('filter-all', t.filterAll);
+    setText('filter-clothing', t.filterClothing);
+    setText('filter-accessory', t.filterAccessory);
 
     if (Object.keys(productsData).length > 0) renderGrid();
 }
