@@ -176,6 +176,24 @@
         </div>
     </div>
 
+    <!-- City Selection Modal -->
+    <div id="city-modal" class="modal">
+        <div class="modal-content city-modal-content">
+            <span class="close-modal" onclick="closeModal('city-modal')">&times;</span>
+            <h3 id="city-title" style="margin-bottom: 16px; font-size: 18px;">Қаланы таңдаңыз</h3>
+            <div class="city-list">
+                <button class="city-btn" onclick="selectCity('Astana')">Астана (1 500₸)</button>
+                <button class="city-btn" onclick="selectCity('Almaty')">Алматы (1 500₸)</button>
+                <button class="city-btn" onclick="selectCity('Karaganda')">Қарағанды (2 000₸)</button>
+                <button class="city-btn" onclick="selectCity('Shymkent')">Шымкент (2 000₸)</button>
+                <button class="city-btn" onclick="selectCity('Aktobe')">Ақтөбе (2 000₸)</button>
+                <button class="city-btn" onclick="selectCity('Other')">Басқа қала (3 000₸)</button>
+            </div>
+            <p style="margin-top: 12px; font-size: 12px; color: #666;" id="city-note">*15 000₸ тапсырыс - Астана/Алматы
+                тегін</p>
+        </div>
+    </div>
+
     <!-- About Modal -->
     <div id="about-modal" class="modal">
         <div class="modal-content">
@@ -246,6 +264,37 @@
 
                 <p style="font-weight: 600; margin-bottom: 8px;">Өлшем дұрыс келмесе?</p>
                 <p style="color: #666;">Алмастыру тегін. WhatsApp-қа жазыңыз.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart FAB -->
+    <div id="cart-fab" class="cart-fab" onclick="openCart()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span id="cart-badge" class="cart-badge">0</span>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content cart-content">
+            <span class="close-modal" onclick="closeModal('cart-modal')">&times;</span>
+            <h3 id="cart-title" style="margin-bottom: 20px; font-size: 18px; font-weight: 600;">Себет / Корзина</h3>
+            <div id="cart-items" class="cart-items">
+                <!-- Items will be injected here -->
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span id="cart-total-text" style="color: #666;">Барлығы / Итого:</span>
+                    <strong id="cart-total-price" style="font-size: 18px;">0 ₸</strong>
+                </div>
+                <button class="btn-buy" onclick="checkoutCart()" id="btn-checkout" style="margin-top: 16px;">
+                    Тапсырыс беру / Оформить
+                </button>
             </div>
         </div>
     </div>

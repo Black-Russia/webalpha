@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALPHARAON | ADMIN</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="firebase.js"></script>
+
+    <style>
+        body {
+            padding: 40px 5%;
+            background: #f5f5f5;
+            color: #111;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .admin-box {
+            background: white;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e5e5;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e5e5e5;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        input,
+        select,
+        button {
+            padding: 12px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+            border: 1px solid #ddd;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #111;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-add {
+            background: #111;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-del {
+            background: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: auto;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .product-item {
+            border: 1px solid #e5e5e5;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .product-item b {
+            font-size: 14px;
+        }
+
+        .stock-inputs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stock-inputs label {
+            font-size: 11px;
+            color: #666;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stock-inputs input {
+            width: 50px;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .order-item {
+            padding: 12px;
+            border: 1px solid #e5e5e5;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-pending {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .status-approved {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .status-rejected {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .order-btns button {
+            margin-left: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn-approve {
+            background: #10b981;
+            color: white;
+            border: none;
+        }
+
+        .btn-reject {
+            background: #ef4444;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ALPHARAON ADMIN 🔐</h1>
+    <p style="margin-bottom:20px;">Status: <b id="connection-status">Connecting...</b></p>
+
+    <!-- ADD PRODUCT -->
+    <div class="admin-box">
+        <h2>➕ Жаңа тауар қосу / Add Product</h2>
+        <input type="text" id="new-name" placeholder="Product Name (e.g. OPIUM HOODIE)">
+        <div class="row">
+            <input type="number" id="new-price" placeholder="Price (KZT)">
+            <input type="text" id="new-img" placeholder="Image (e.g. hoodie.webp)">
+        </div>
+        <div class="row" style="margin-top: 10px;">
+            <select id="new-type">
+                <option value="clothing">Clothing (S/M/L/XL)</option>
+                <option value="accessory">Accessory (One Size)</option>
+            </select>
+        </div>
+        <button class="btn-add" onclick="addProduct()" style="margin-top: 10px;">CREATE PRODUCT</button>
+        <small style="display:block; margin-top:10px; color:#666;">Put image files in <b>images/</b> folder</small>
+    </div>
+
+    <!-- PRODUCTS LIST -->
+    <div class="admin-box">
+        <h2>📦 Тауарлар / Inventory</h2>
+        <div id="products-list">Loading...</div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="admin-box">
+        <h2>📋 Тапсырыстар / Orders</h2>
+        <div id="orders-list">Loading...</div>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            if (window.db) {
+                document.getElementById('connection-status').innerText = "ONLINE ✓";
+                document.getElementById('connection-status').style.color = "#10b981";
+                loadData();
+            }
+        }, 1000);
+
+        function loadData() {
+            // PRODUCTS
+            window.db.ref('products').on('value', (snap) => {
+                const list = document.getElementById('products-list');
+                const products = snap.val();
+
+                if (!products) { list.innerHTML = "No products."; return; }
+
+                list.innerHTML = "";
+                Object.entries(products).forEach(([key, p]) => {
+                    const div = document.createElement('div');
+                    div.className = 'product-item';
+
+                    const isAccessory = p.type === 'accessory';
+                    let stockHtml = '';
+
+                    if (isAccessory) {
+                        const qty = (p.stock && p.stock.ONE) || 0;
+                        stockHtml = `<div class="stock-inputs">
+                            <label>QTY: <input onchange="updStock('${key}', 'ONE', this.value)" type="number" value="${qty}"></label>
+                        </div>`;
+                    } else {
+                        stockHtml = `<div class="stock-inputs">
+                            <label>S <input onchange="updStock('${key}', 'S', this.value)" type="number" value="${(p.stock && p.stock.S) || 0}"></label>
+                            <label>M <input onchange="updStock('${key}', 'M', this.value)" type="number" value="${(p.stock && p.stock.M) || 0}"></label>
+                            <label>L <input onchange="updStock('${key}', 'L', this.value)" type="number" value="${(p.stock && p.stock.L) || 0}"></label>
+                            <label>XL <input onchange="updStock('${key}', 'XL', this.value)" type="number" value="${(p.stock && p.stock.XL) || 0}"></label>
+                        </div>`;
+                    }
+
+                    div.innerHTML = `
+                        <div>
+                            <b>${p.name}</b> <span style="color:#666">(${p.price}₸)</span>
+                            <br><small style="color:#999">${p.image} • ${isAccessory ? 'Accessory' : 'Clothing'}</small>
+                        </div>
+                        ${stockHtml}
+                        <button class="btn-del" onclick="deleteProduct('${key}')">🗑️</button>
+                    `;
+                    list.appendChild(div);
+                });
+            });
+
+            // ORDERS
+            window.db.ref('orders').orderByChild('timestamp').limitToLast(30).on('value', (snap) => {
+                const list = document.getElementById('orders-list');
+                const val = snap.val();
+                if (!val) { list.innerHTML = "No orders."; return; }
+
+                list.innerHTML = "";
+                const arr = Object.entries(val).map(([k, v]) => ({ key: k, ...v }))
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                arr.forEach(o => {
+                    const div = document.createElement('div');
+                    div.className = 'order-item';
+                    const statusClass = `status-${o.status || 'pending'}`;
+                    const time = o.timestamp ? new Date(o.timestamp).toLocaleString() : '';
+                    const city = o.city ? `📍 ${o.city}` : '';
+                    const shipping = o.shipping ? `🚚 ${o.shipping}` : '';
+                    const price = o.price ? `${Number(o.price).toLocaleString()} ₸` : '';
+
+                    let btns = '';
+                    if (o.status === 'pending') {
+                        btns = `<span class="order-btns">
+                            <button class="btn-approve" onclick="confirmOrder('${o.key}', '${o.productId}', '${o.size}')">✓ Paid</button>
+                            <button class="btn-reject" onclick="rejectOrder('${o.key}')">✗ Fake</button>
+                        </span>`;
+                    }
+
+                    div.innerHTML = `
+                        <div>
+                            <div style="margin-bottom:4px;">
+                                <b>${o.item}</b> [${o.size}] <span style="color:#10b981">${price}</span>
+                            </div>
+                            <small style="color:#666; display:block; margin-bottom:2px;">${city} | ${shipping}</small>
+                            <small style="color:#999">${time}</small>
+                        </div>
+                        <div style="display:flex;align-items:center;">
+                            <span class="${statusClass}">${(o.status || 'pending').toUpperCase()}</span>
+                            ${btns}
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        // ACTIONS
+        window.addProduct = function () {
+            const name = document.getElementById('new-name').value;
+            const price = document.getElementById('new-price').value;
+            const img = document.getElementById('new-img').value || 'placeholder.webp';
+            const type = document.getElementById('new-type').value;
+
+            if (!name || !price) return alert("Fill Name and Price!");
+
+            const stock = type === 'accessory' ? { ONE: 0 } : { S: 0, M: 0, L: 0, XL: 0 };
+
+            window.db.ref('products').push().set({
+                name, price: Number(price), image: img, type, stock
+            }).then(() => {
+                alert("Product added!");
+                document.getElementById('new-name').value = "";
+                document.getElementById('new-price').value = "";
+            });
+        }
+
+        window.updStock = function (key, size, qty) {
+            window.db.ref(`products/${key}/stock/${size}`).set(Number(qty));
+        }
+
+        window.deleteProduct = function (key) {
+            if (confirm("Delete this product?")) window.db.ref(`products/${key}`).remove();
+        }
+
+        window.confirmOrder = function (orderKey, productId, size) {
+            if (!confirm("Client paid? Deduct stock?")) return;
+
+            const stockRef = window.db.ref(`products/${productId}/stock/${size}`);
+            stockRef.transaction((current) => {
+                if (current === null || current <= 0) return current;
+                return current - 1;
+            }, (error, committed) => {
+                if (committed) {
+                    window.db.ref(`orders/${orderKey}`).update({ status: 'approved' });
+                } else {
+                    alert("Stock is 0!");
+                }
+            });
+        }
+
+        window.rejectOrder = function (orderKey) {
+            if (confirm("Mark as fake?")) window.db.ref(`orders/${orderKey}`).update({ status: 'rejected' });
+        }
+    </script>
+</body>
+
+</html>
