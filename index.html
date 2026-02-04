@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="kz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALPHARAON | Қазақстандық Streetwear Киім Дүкені</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/logo_new.png">
+    <link rel="apple-touch-icon" href="images/logo_new.png">
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="ALPHARAON - Қазақстанда жасалған streetwear киім. Сапалы футболкалар, худилар, oversize киім. Астана, Алматы бойынша жеткізу.">
+    <meta name="keywords"
+        content="Alpharaon, альфараон, alpharaon store, alpharaon clothes, alpharaon clothing, kazakh clothes, kazakhstan streetwear, қазақ киім, streetwear казахстан, одежда казахстан, казахская одежда, худи казахстан, футболки казахстан, oversize киім, астана киім, алматы киім, казахстанский бренд одежды, streetwear astana, streetwear almaty, alpharaon kz, alpharaon kazakhstan, модная одежда казахстан, уличная одежда казахстан, alpharaon shop, alpharaon официальный сайт">
+    <meta name="author" content="ALPHARAON">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Kazakh, Russian">
+    <meta name="geo.region" content="KZ">
+    <meta name="geo.placename" content="Astana, Kazakhstan">
+
+    <!-- Open Graph for Social Media -->
+    <meta property="og:title" content="ALPHARAON | Қазақстандық Streetwear Киім">
+    <meta property="og:description"
+        content="Сапалы streetwear киім. Қазақстанда жасалған стиль. Худи, футболкалар, oversize киім.">
+    <meta property="og:image" content="https://alpharaon.store/images/logo_new.png">
+    <meta property="og:url" content="https://alpharaon.store">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ALPHARAON Store">
+    <meta property="og:locale" content="kk_KZ">
+    <meta property="og:locale:alternate" content="ru_RU">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ALPHARAON | Kazakh Streetwear">
+    <meta name="twitter:description"
+        content="Premium streetwear clothing made in Kazakhstan. Hoodies, t-shirts, oversized fits.">
+    <meta name="twitter:image" content="https://alpharaon.store/images/logo_new.png">
+
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="firebase.js"></script>
+</head>
+
+<body>
+
+    <!-- Language Selector -->
+    <div id="lang-modal" class="modal" style="display: flex;">
+        <div class="modal-content" style="text-align: center;">
+            <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Сәлем / Привет</h2>
+            <p style="color: #666; margin-bottom: 30px; font-size: 14px;">Тіліңізді таңдаңыз / Выберите язык</p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <button onclick="setLang('kz')" class="lang-btn">Қазақша</button>
+                <button onclick="setLang('ru')" class="lang-btn">Русский</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-bar" id="announcement">
+        ТЕГІН ЖЕТКІЗУ 15 000 ₸ АСТАМ ТАПСЫРЫСТАРҒА
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="/" class="logo">
+            <img src="images/logo_new.png" alt="ALPHARAON" class="logo-img">
+            <span>ALPHARAON</span>
+        </a>
+        <div class="nav-right">
+            <span class="lang-toggle" onclick="openLangModal()">🌐</span>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1 id="hero-title">Жаңа Коллекция 2026</h1>
+        <p id="hero-subtitle">Сапалы киім. Қазақстанда жасалған стиль.</p>
+    </section>
+
+    <!-- Products -->
+    <section class="products">
+        <h2 class="section-title" id="section-title">Барлық тауарлар</h2>
+        <div class="grid" id="product-grid">
+            <p id="loading-text">Жүктелуде...</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h4>ALPHARAON</h4>
+                <a href="#" onclick="openAbout()" id="footer-about">Біз туралы</a>
+                <a href="#" onclick="openPrivacy()" id="footer-privacy">Құпиялылық саясаты</a>
+            </div>
+            <div class="footer-col">
+                <h4 id="footer-support">Қолдау</h4>
+                <a href="#" onclick="openSizeGuide()" id="footer-size">Өлшем кестесі</a>
+                <a href="#" onclick="openShipping()" id="footer-shipping">Жеткізу</a>
+                <a href="#" onclick="openFaq()" id="footer-faq">FAQ</a>
+            </div>
+            <div class="footer-col">
+                <h4 id="footer-contact">Байланыс</h4>
+                <div class="social-icons">
+                    <a href="https://instagram.com/alpharaondev" target="_blank" aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="2" y="2" width="20" height="20" rx="5" />
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                        </svg>
+                    </a>
+                    <a href="https://wa.me/77055020133" target="_blank" aria-label="WhatsApp">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                        </svg>
+                    </a>
+                </div>
+                <a href="tel:+77055020133">+7 705 502 01 33</a>
+            </div>
+        </div>
+        <div class="copyright">© 2026 ALPHARAON. Барлық құқықтар қорғалған.</div>
+    </footer>
+
+    <!-- Size Guide Modal -->
+    <div id="size-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('size-modal')">&times;</span>
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px;" id="size-title">Өлшем кестесі</h3>
+            <p style="color: #666; font-size: 13px; margin-bottom: 20px;" id="size-desc">Oversize пішімі. Еркін киім
+                үшін бір өлшем үлкен алыңыз.</p>
+            <table class="size-table">
+                <thead>
+                    <tr>
+                        <th>Өлшем</th>
+                        <th id="th-height">Бой (см)</th>
+                        <th id="th-weight">Салмақ (кг)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>S</td>
+                        <td>160–170</td>
+                        <td>50–60</td>
+                    </tr>
+                    <tr>
+                        <td>M</td>
+                        <td>170–180</td>
+                        <td>60–75</td>
+                    </tr>
+                    <tr>
+                        <td>L</td>
+                        <td>180–190</td>
+                        <td>75–90</td>
+                    </tr>
+                    <tr>
+                        <td>XL</td>
+                        <td>190+</td>
+                        <td>90+</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('about-modal')">&times;</span>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;" id="about-title">Біз туралы</h3>
+            <p style="color: #333; line-height: 1.7; margin-bottom: 16px;" id="about-p1">
+                ALPHARAON 2026 жылы құрылды. Біздің мақсатымыз — Қазақстанда streetwear мәдениетін дамыту.
+            </p>
+            <p style="color: #333; line-height: 1.7; margin-bottom: 24px;" id="about-p2">
+                Біз трендтерді соқыр қуамыз емес. Біз әрқашан өзекті, практикалық киім жасаймыз. Біз өз ісімізді
+                сүйеміз.
+            </p>
+            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;" id="about-values-title">Біздің
+                құндылықтар</h4>
+            <ul id="values-list" style="list-style: none; color: #666; font-size: 13px; line-height: 2;">
+                <li>• Адалдық</li>
+                <li>• Сапа</li>
+                <li>• Даму</li>
+                <li>• Сенім</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('privacy-modal')">&times;</span>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;" id="privacy-title">Құпиялылық саясаты
+            </h3>
+            <div id="privacy-content" style="color: #333; font-size: 13px; line-height: 1.8;">
+                <p style="margin-bottom: 16px;">Біз сіздің жеке деректеріңізді қорғаймыз:</p>
+                <ul style="margin-left: 20px; margin-bottom: 16px;">
+                    <li>Аты-жөніңіз тек тапсырыс үшін қолданылады</li>
+                    <li>Телефон нөміріңіз үшінші тарапқа берілмейді</li>
+                    <li>Төлем деректері сақталмайды</li>
+                </ul>
+                <p>Сұрақтар болса: +7 705 502 01 33</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping Modal -->
+    <div id="shipping-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('shipping-modal')">&times;</span>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;" id="shipping-title">Жеткізу</h3>
+            <div id="shipping-content" style="color: #333; font-size: 13px; line-height: 1.8;">
+                <p style="margin-bottom: 12px;"><strong>Астана, Алматы:</strong> 1-3 жұмыс күні</p>
+                <p style="margin-bottom: 12px;"><strong>Басқа қалалар:</strong> 3-7 жұмыс күні</p>
+                <p style="margin-bottom: 16px;"><strong>Бағасы:</strong> 15 000₸ астам тапсырыстарға — ТЕГІН</p>
+                <p>Жеткізу Kaspi арқылы жүзеге асырылады.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Modal -->
+    <div id="faq-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('faq-modal')">&times;</span>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;" id="faq-title">Жиі қойылатын сұрақтар
+            </h3>
+            <div id="faq-content" style="color: #333; font-size: 13px; line-height: 1.8;">
+                <p style="font-weight: 600; margin-bottom: 8px;">Қалай төлеймін?</p>
+                <p style="margin-bottom: 16px; color: #666;">Kaspi аударым немесе Kaspi QR арқылы.</p>
+
+                <p style="font-weight: 600; margin-bottom: 8px;">Қайтару бар ма?</p>
+                <p style="margin-bottom: 16px; color: #666;">Иә, 14 күн ішінде қайтаруға болады (тег алынбаса).</p>
+
+                <p style="font-weight: 600; margin-bottom: 8px;">Өлшем дұрыс келмесе?</p>
+                <p style="color: #666;">Алмастыру тегін. WhatsApp-қа жазыңыз.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
