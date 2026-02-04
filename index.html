@@ -86,6 +86,11 @@
     <!-- Products -->
     <section class="products">
         <h2 class="section-title" id="section-title">Барлық тауарлар</h2>
+        <div class="category-filters" id="category-filters">
+            <button class="category-btn active" onclick="filterCategory('all')" id="filter-all">Барлығы</button>
+            <button class="category-btn" onclick="filterCategory('clothing')" id="filter-clothing">Киім</button>
+            <button class="category-btn" onclick="filterCategory('accessory')" id="filter-accessory">Аксессуар</button>
+        </div>
         <div class="grid" id="product-grid">
             <p id="loading-text">Жүктелуде...</p>
         </div>
@@ -96,14 +101,14 @@
         <div class="footer-content">
             <div class="footer-col">
                 <h4>ALPHARAON</h4>
-                <a href="#" onclick="openAbout()" id="footer-about">Біз туралы</a>
-                <a href="#" onclick="openPrivacy()" id="footer-privacy">Құпиялылық саясаты</a>
+                <a href="javascript:void(0)" onclick="return openAbout()" id="footer-about">Біз туралы</a>
+                <a href="javascript:void(0)" onclick="return openPrivacy()" id="footer-privacy">Құпиялылық саясаты</a>
             </div>
             <div class="footer-col">
                 <h4 id="footer-support">Қолдау</h4>
-                <a href="#" onclick="openSizeGuide()" id="footer-size">Өлшем кестесі</a>
-                <a href="#" onclick="openShipping()" id="footer-shipping">Жеткізу</a>
-                <a href="#" onclick="openFaq()" id="footer-faq">FAQ</a>
+                <a href="javascript:void(0)" onclick="return openSizeGuide()" id="footer-size">Өлшем кестесі</a>
+                <a href="javascript:void(0)" onclick="return openShipping()" id="footer-shipping">Жеткізу</a>
+                <a href="javascript:void(0)" onclick="return openFaq()" id="footer-faq">FAQ</a>
             </div>
             <div class="footer-col">
                 <h4 id="footer-contact">Байланыс</h4>

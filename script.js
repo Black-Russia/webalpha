@@ -48,7 +48,10 @@ const T = {
             <p style="margin-bottom: 16px; color: #666;">Иә, 14 күн ішінде қайтаруға болады (тег алынбаса).</p>
             <p style="font-weight: 600; margin-bottom: 8px;">Өлшем дұрыс келмесе?</p>
             <p style="color: #666;">Алмастыру тегін. WhatsApp-қа жазыңыз.</p>`,
-        reviews: "пікір"
+        reviews: "пікір",
+        filterAll: "Барлығы",
+        filterClothing: "Киім",
+        filterAccessory: "Аксессуар"
     },
     ru: {
         announcement: "БЕСПЛАТНАЯ ДОСТАВКА ОТ 15 000 ₸",
@@ -62,7 +65,7 @@ const T = {
         sizeGuide: "Таблица размеров",
         oneSize: "Один размер",
         footerAbout: "О нас",
-        footerPrivacy: "Құпиялылық саясаты",
+        footerPrivacy: "Политика конфиденциальности",
         footerSupport: "Поддержка",
         footerSize: "Таблица размеров",
         footerShipping: "Доставка",
@@ -78,7 +81,7 @@ const T = {
         aboutValuesTitle: "Наши ценности",
         values: ["• Честность", "• Качество", "• Развитие", "• Доверие"],
         copyright: "© 2026 ALPHARAON. Все права защищены.",
-        privacyTitle: "Құпиялылық саясаты",
+        privacyTitle: "Политика конфиденциальности",
         privacyContent: `<p style="margin-bottom: 16px;">Мы защищаем ваши персональные данные:</p>
             <ul style="margin-left: 20px; margin-bottom: 16px;">
                 <li>Ваше имя используется только для заказа</li>
@@ -98,13 +101,17 @@ const T = {
             <p style="margin-bottom: 16px; color: #666;">Да, в течение 14 дней (если бирка не снята).</p>
             <p style="font-weight: 600; margin-bottom: 8px;">Если размер не подошёл?</p>
             <p style="color: #666;">Обмен бесплатный. Напишите в WhatsApp.</p>`,
-        reviews: "отзывов"
+        reviews: "отзывов",
+        filterAll: "Все",
+        filterClothing: "Одежда",
+        filterAccessory: "Аксессуары"
     }
 };
 
 let currentLang = localStorage.getItem('alpharaon_lang') || null;
 let productsData = {};
 let selectedSizes = {};
+let currentCategory = 'all';
 
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -158,7 +165,23 @@ function applyLang(lang) {
     document.getElementById('faq-title').innerText = t.faqTitle;
     document.getElementById('faq-content').innerHTML = t.faqContent;
 
+    // Category filters translations
+    document.getElementById('filter-all').innerText = t.filterAll;
+    document.getElementById('filter-clothing').innerText = t.filterClothing;
+    document.getElementById('filter-accessory').innerText = t.filterAccessory;
+
     if (Object.keys(productsData).length > 0) renderGrid();
+}
+
+// --- CATEGORY FILTER ---
+window.filterCategory = function (category) {
+    currentCategory = category;
+
+    // Update active button
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('filter-' + category).classList.add('active');
+
+    renderGrid();
 }
 
 // --- STORE ---
@@ -180,8 +203,13 @@ function renderGrid() {
     grid.innerHTML = "";
 
     Object.entries(productsData).forEach(([key, p]) => {
-        const imgSrc = p.image.startsWith('http') ? p.image : `images/${p.image}`;
         const isAccessory = p.type === 'accessory';
+
+        // Filter by category
+        if (currentCategory === 'clothing' && isAccessory) return;
+        if (currentCategory === 'accessory' && !isAccessory) return;
+
+        const imgSrc = p.image.startsWith('http') ? p.image : `images/${p.image}`;
 
         // Deterministic review count based on product ID (1-10, same for all users)
         const hash = key.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -263,11 +291,11 @@ window.buyItem = function (key) {
 }
 
 // --- MODALS ---
-window.openSizeGuide = function () { document.getElementById('size-modal').style.display = 'flex'; }
-window.openAbout = function () { document.getElementById('about-modal').style.display = 'flex'; }
-window.openPrivacy = function () { document.getElementById('privacy-modal').style.display = 'flex'; }
-window.openShipping = function () { document.getElementById('shipping-modal').style.display = 'flex'; }
-window.openFaq = function () { document.getElementById('faq-modal').style.display = 'flex'; }
+window.openSizeGuide = function (e) { if (e) e.preventDefault(); document.getElementById('size-modal').style.display = 'flex'; return false; }
+window.openAbout = function (e) { if (e) e.preventDefault(); document.getElementById('about-modal').style.display = 'flex'; return false; }
+window.openPrivacy = function (e) { if (e) e.preventDefault(); document.getElementById('privacy-modal').style.display = 'flex'; return false; }
+window.openShipping = function (e) { if (e) e.preventDefault(); document.getElementById('shipping-modal').style.display = 'flex'; return false; }
+window.openFaq = function (e) { if (e) e.preventDefault(); document.getElementById('faq-modal').style.display = 'flex'; return false; }
 window.closeModal = function (id) { document.getElementById(id).style.display = 'none'; }
 window.onclick = function (e) {
     ['size-modal', 'about-modal', 'lang-modal', 'privacy-modal', 'shipping-modal', 'faq-modal'].forEach(id => {
