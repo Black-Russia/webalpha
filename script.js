@@ -22,6 +22,7 @@ const T = {
         sizeDesc: "Oversize пішімі. Еркін киім үшін бір өлшем үлкен алыңыз.",
         thHeight: "Бой (см)",
         thWeight: "Салмақ (кг)",
+        thSize: "Өлшем",
         aboutTitle: "Біз туралы",
         aboutP1: "ALPHARAON 2026 жылы құрылды. Біздің мақсатымыз — ең сапалы streetwear тауарларды таңдап, сізге ұсыну.",
         aboutP2: "Біз трендтерді соқыр қуамыз емес. Біз әрқашан өзекті, сапалы киім таңдаймыз. Біз өз ісімізді сүйеміз.",
@@ -75,6 +76,7 @@ const T = {
         sizeDesc: "Oversize крой. Для свободной посадки берите на размер больше.",
         thHeight: "Рост (см)",
         thWeight: "Вес (кг)",
+        thSize: "Размер",
         aboutTitle: "О нас",
         aboutP1: "ALPHARAON был основан в 2026 году. Наша цель — отбирать лучшие streetwear товары и предлагать их вам.",
         aboutP2: "Мы не следуем слепо за трендами. Мы выбираем актуальную, качественную одежду. Мы любим своё дело.",
@@ -128,6 +130,10 @@ window.setLang = function (lang) {
     localStorage.setItem('alpharaon_lang', lang);
     document.getElementById('lang-modal').style.display = 'none';
     applyLang(lang);
+    // Force re-render products with new language
+    if (Object.keys(productsData).length > 0) {
+        renderGrid();
+    }
 }
 
 window.openLangModal = function () {
@@ -162,6 +168,7 @@ function applyLang(lang) {
     setText('footer-contact', t.footerContact);
     setText('size-title', t.sizeTitle);
     setText('size-desc', t.sizeDesc);
+    setText('th-size', t.thSize);
     setText('th-height', t.thHeight);
     setText('th-weight', t.thWeight);
     setText('about-title', t.aboutTitle);
