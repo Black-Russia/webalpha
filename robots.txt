@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /manage.html
 
 Sitemap: https://alpharaon.com/sitemap.xml
