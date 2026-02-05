@@ -171,15 +171,28 @@
         <input type="text" id="new-name" placeholder="Product Name (e.g. OPIUM HOODIE)">
         <div class="row">
             <input type="number" id="new-price" placeholder="Price (KZT)">
-            <input type="text" id="new-img" placeholder="Image (e.g. hoodie.webp)">
-        </div>
-        <div class="row" style="margin-top: 10px;">
             <select id="new-type">
                 <option value="clothing">Clothing (S/M/L/XL)</option>
                 <option value="accessory">Accessory (One Size)</option>
             </select>
         </div>
-        <button class="btn-add" onclick="addProduct()" style="margin-top: 10px;">CREATE PRODUCT</button>
+
+        <h3 style="margin-top:16px; font-size:12px; color:#666;">📷 Картинки / Images</h3>
+        <input type="text" id="new-img" placeholder="Main image (e.g. hoodie.webp)">
+        <input type="text" id="new-img-2" placeholder="2nd image (optional)">
+        <input type="text" id="new-img-3" placeholder="3rd image (optional)">
+
+        <h3 style="margin-top:16px; font-size:12px; color:#666;">📝 Характеристики / Specs (optional)</h3>
+        <div class="row">
+            <input type="text" id="new-fabric" placeholder="Fabric (e.g. 100% Cotton)">
+            <input type="text" id="new-gsm" placeholder="GSM (e.g. 400)">
+        </div>
+        <div class="row">
+            <input type="text" id="new-fit" placeholder="Fit (e.g. Oversize)">
+            <input type="text" id="new-care" placeholder="Care (e.g. Machine wash)">
+        </div>
+
+        <button class="btn-add" onclick="addProduct()" style="margin-top: 16px;">CREATE PRODUCT</button>
         <small style="display:block; margin-top:10px; color:#666;">Put image files in <b>images/</b> folder</small>
     </div>
 
@@ -234,10 +247,25 @@
                         </div>`;
                     }
 
+                    // Images display
+                    const imgCount = p.images ? p.images.length : 1;
+                    const mainImg = p.images ? p.images[0] : p.image;
+
+                    // Specs display
+                    let specsHtml = '';
+                    if (p.specs) {
+                        const parts = [];
+                        if (p.specs.fabric) parts.push(p.specs.fabric);
+                        if (p.specs.gsm) parts.push(p.specs.gsm + ' GSM');
+                        if (p.specs.fit) parts.push(p.specs.fit);
+                        specsHtml = parts.length ? `<br><small style="color:#10b981">${parts.join(' • ')}</small>` : '';
+                    }
+
                     div.innerHTML = `
                         <div>
                             <b>${p.name}</b> <span style="color:#666">(${p.price}₸)</span>
-                            <br><small style="color:#999">${p.image} • ${isAccessory ? 'Accessory' : 'Clothing'}</small>
+                            <br><small style="color:#999">${mainImg} ${imgCount > 1 ? `(+${imgCount - 1} photos)` : ''} • ${isAccessory ? 'Accessory' : 'Clothing'}</small>
+                            ${specsHtml}
                         </div>
                         ${stockHtml}
                         <button class="btn-del" onclick="deleteProduct('${key}')">🗑️</button>
@@ -295,19 +323,55 @@
         window.addProduct = function () {
             const name = document.getElementById('new-name').value;
             const price = document.getElementById('new-price').value;
-            const img = document.getElementById('new-img').value || 'placeholder.webp';
             const type = document.getElementById('new-type').value;
+
+            // Images (main required, others optional)
+            const img1 = document.getElementById('new-img').value || 'placeholder.webp';
+            const img2 = document.getElementById('new-img-2').value;
+            const img3 = document.getElementById('new-img-3').value;
+            const images = [img1];
+            if (img2) images.push(img2);
+            if (img3) images.push(img3);
+
+            // Specs (all optional)
+            const fabric = document.getElementById('new-fabric').value;
+            const gsm = document.getElementById('new-gsm').value;
+            const fit = document.getElementById('new-fit').value;
+            const care = document.getElementById('new-care').value;
 
             if (!name || !price) return alert("Fill Name and Price!");
 
             const stock = type === 'accessory' ? { ONE: 0 } : { S: 0, M: 0, L: 0, XL: 0 };
 
-            window.db.ref('products').push().set({
-                name, price: Number(price), image: img, type, stock
-            }).then(() => {
+            const productData = {
+                name,
+                price: Number(price),
+                image: img1,  // backward compatibility
+                images: images,
+                type,
+                stock
+            };
+
+            // Add specs only if at least one is filled
+            if (fabric || gsm || fit || care) {
+                productData.specs = {};
+                if (fabric) productData.specs.fabric = fabric;
+                if (gsm) productData.specs.gsm = gsm;
+                if (fit) productData.specs.fit = fit;
+                if (care) productData.specs.care = care;
+            }
+
+            window.db.ref('products').push().set(productData).then(() => {
                 alert("Product added!");
                 document.getElementById('new-name').value = "";
                 document.getElementById('new-price').value = "";
+                document.getElementById('new-img').value = "";
+                document.getElementById('new-img-2').value = "";
+                document.getElementById('new-img-3').value = "";
+                document.getElementById('new-fabric').value = "";
+                document.getElementById('new-gsm').value = "";
+                document.getElementById('new-fit').value = "";
+                document.getElementById('new-care').value = "";
             });
         }
 

@@ -77,7 +77,16 @@ const T = {
         reviews: "пікір",
         filterAll: "Барлығы",
         filterClothing: "Киім",
-        filterAccessory: "Аксессуар"
+        filterAccessory: "Аксессуар",
+        specFabric: "Мата",
+        specGsm: "Тығыздық",
+        specFit: "Пішім",
+        specCare: "Күтім",
+        aboutProduct: "ТАУАР ТУРАЛЫ",
+        sizeLabel: "Өлшем:",
+        toCart: "СЕБЕТКЕ САЛУ",
+        newBadge: "ЖАҢА",
+        addedToCart: "Қосылды"
     },
     ru: {
         announcement: "БЕСПЛАТНАЯ ДОСТАВКА ОТ 15 000 ₸",
@@ -156,7 +165,16 @@ const T = {
         reviews: "отзывов",
         filterAll: "Все",
         filterClothing: "Одежда",
-        filterAccessory: "Аксессуары"
+        filterAccessory: "Аксессуары",
+        specFabric: "Ткань",
+        specGsm: "Плотность",
+        specFit: "Крой",
+        specCare: "Уход",
+        aboutProduct: "О ТОВАРЕ",
+        sizeLabel: "Размер:",
+        toCart: "В КОРЗИНУ",
+        newBadge: "НОВИНКА",
+        addedToCart: "Добавлено"
     }
 };
 
@@ -303,7 +321,9 @@ function renderGrid() {
         if (currentCategory === 'clothing' && isAccessory) return;
         if (currentCategory === 'accessory' && !isAccessory) return;
 
-        const imgSrc = p.image.startsWith('http') ? p.image : `images/${p.image}`;
+        // Handle multiple images (backward compatible)
+        const images = p.images || [p.image];
+        const imgSrc = images[0].startsWith('http') ? images[0] : `images/${images[0]}`;
 
         // Calculate total stock
         let totalStock = 0;
@@ -332,41 +352,46 @@ function renderGrid() {
             `;
         }
 
-        // Low stock badge
-        const stockBadge = isLowStock ? `<span class="stock-badge low">${t.lowStock}</span>` : '';
-
-        // Buy button or out of stock
-        let buttonsHtml = '';
+        // Low stock / out of stock badges
+        let badgeHtml = '';
         if (isOutOfStock) {
-            buttonsHtml = `<button class="btn-buy btn-disabled" disabled>${t.outOfStock}</button>`;
-        } else {
-            buttonsHtml = `
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn-buy" onclick="addToCart('${key}')" style="background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">${t.addToCart}</button>
-                    <button class="btn-buy" onclick="buyItem('${key}')">${t.buyNow}</button>
-                </div>
-            `;
+            badgeHtml = `<span class="card-badge sold-out">${t.outOfStock}</span>`;
+        } else if (isLowStock) {
+            badgeHtml = `<span class="card-badge low">${t.lowStock}</span>`;
         }
 
         const div = document.createElement('div');
         div.className = 'product-card';
+        div.onclick = () => openProductDetail(key);
         div.innerHTML = `
             <div class="image-box">
-                <img src="${imgSrc}" onerror="this.style.background='#f0f0f0'">
-                ${stockBadge}
+                <img src="${imgSrc}" onerror="this.style.background='#f0f0f0'" loading="lazy">
+                ${badgeHtml}
             </div>
             <div class="product-info">
                 <h3>${p.name}</h3>
-                <div class="review-line">
-                    <span class="stars">★★★★★</span>
-                    <span class="review-count">${reviewCount} ${t.reviews}</span>
-                </div>
-                <p class="price">${Number(p.price).toLocaleString()} ₸</p>
-                ${sizeHtml}
-                ${buttonsHtml}
+                <p class="price">${Number(p.price).toLocaleString()}₸</p>
             </div>
         `;
         grid.appendChild(div);
+    });
+}
+
+// Image gallery navigation
+window.nextImage = function (box) {
+    const images = JSON.parse(box.dataset.images);
+    if (images.length <= 1) return;
+
+    let idx = parseInt(box.dataset.idx) || 0;
+    idx = (idx + 1) % images.length;
+    box.dataset.idx = idx;
+
+    const imgSrc = images[idx].startsWith('http') ? images[idx] : `images/${images[idx]}`;
+    box.querySelector('img').src = imgSrc;
+
+    // Update dots
+    box.querySelectorAll('.gallery-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === idx);
     });
 }
 
@@ -388,6 +413,162 @@ window.selectSize = function (key, size) {
     for (let c of container.children) {
         if (c.innerText === size) c.classList.add('selected');
     }
+}
+
+// --- PRODUCT DETAIL MODAL ---
+let currentDetailKey = null;
+let detailImageIdx = 0;
+
+window.openProductDetail = function (key) {
+    const p = productsData[key];
+    if (!p) return;
+
+    currentDetailKey = key;
+    detailImageIdx = 0;
+    const t = T[currentLang || 'kz'];
+
+    // Images
+    const images = p.images || [p.image];
+    const imgSrc = images[0].startsWith('http') ? images[0] : `images/${images[0]}`;
+    document.getElementById('product-main-img').src = imgSrc;
+
+    // Gallery dots
+    const dotsContainer = document.getElementById('product-dots');
+    if (images.length > 1) {
+        dotsContainer.innerHTML = images.map((_, i) =>
+            `<span class="gallery-dot${i === 0 ? ' active' : ''}" onclick="detailGalleryTo(${i})"></span>`
+        ).join('');
+        dotsContainer.style.display = 'flex';
+    } else {
+        dotsContainer.style.display = 'none';
+    }
+
+    // Click on image to cycle
+    document.getElementById('product-gallery').onclick = () => {
+        if (images.length <= 1) return;
+        detailImageIdx = (detailImageIdx + 1) % images.length;
+        const src = images[detailImageIdx].startsWith('http') ? images[detailImageIdx] : `images/${images[detailImageIdx]}`;
+        document.getElementById('product-main-img').src = src;
+        dotsContainer.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === detailImageIdx));
+    };
+
+    // Info
+    document.getElementById('product-badge').style.display = 'none'; // Can show NEW badge if needed
+    document.getElementById('product-name').textContent = p.name;
+    document.getElementById('product-price').textContent = `${Number(p.price).toLocaleString()}₸`;
+
+    // Size selector
+    document.getElementById('size-label').textContent = t.sizeLabel;
+    const sizesContainer = document.getElementById('product-sizes');
+    const isAccessory = p.type === 'accessory';
+
+    if (isAccessory) {
+        selectedSizes[key] = 'ONE';
+        sizesContainer.innerHTML = `<span style="color:#666">${t.oneSize}</span>`;
+    } else {
+        const sizes = ['S', 'M', 'L', 'XL'];
+        sizesContainer.innerHTML = sizes.map(size => {
+            const qty = (p.stock && p.stock[size]) || 0;
+            const disabled = qty <= 0 ? 'disabled' : '';
+            const selected = selectedSizes[key] === size ? 'selected' : '';
+            return `<button class="size-btn ${disabled} ${selected}" onclick="selectDetailSize('${key}', '${size}')" ${qty <= 0 ? 'disabled' : ''}>${size}</button>`;
+        }).join('');
+    }
+
+    // About Product
+    document.getElementById('about-label').textContent = t.aboutProduct;
+    let aboutText = '';
+    if (p.specs) {
+        const parts = [];
+        if (p.specs.fabric) parts.push(`${t.specFabric}: ${p.specs.fabric}`);
+        if (p.specs.gsm) parts.push(`${t.specGsm}: ${p.specs.gsm}`);
+        if (p.specs.fit) parts.push(`${t.specFit}: ${p.specs.fit}`);
+        if (p.specs.care) parts.push(`${t.specCare}: ${p.specs.care}`);
+        aboutText = parts.join('<br>');
+    } else {
+        aboutText = currentLang === 'ru' ? 'Информация будет добавлена' : 'Ақпарат қосылады';
+    }
+    document.getElementById('about-text').innerHTML = aboutText;
+    document.getElementById('about-content').style.display = 'none'; // Collapsed by default
+
+    // Cart button
+    document.getElementById('btn-detail-cart').textContent = t.toCart;
+
+    // Check if out of stock
+    let totalStock = 0;
+    if (p.stock) Object.values(p.stock).forEach(qty => totalStock += (qty || 0));
+    const cartBtn = document.getElementById('btn-detail-cart');
+    if (totalStock === 0) {
+        cartBtn.disabled = true;
+        cartBtn.textContent = t.outOfStock;
+        cartBtn.classList.add('btn-disabled');
+    } else {
+        cartBtn.disabled = false;
+        cartBtn.classList.remove('btn-disabled');
+    }
+
+    document.getElementById('product-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+window.detailGalleryTo = function (idx) {
+    const p = productsData[currentDetailKey];
+    if (!p) return;
+    const images = p.images || [p.image];
+    detailImageIdx = idx;
+    const src = images[idx].startsWith('http') ? images[idx] : `images/${images[idx]}`;
+    document.getElementById('product-main-img').src = src;
+    document.getElementById('product-dots').querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+}
+
+window.selectDetailSize = function (key, size) {
+    selectedSizes[key] = size;
+    document.querySelectorAll('#product-sizes .size-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent === size);
+    });
+}
+
+window.toggleAbout = function () {
+    const content = document.getElementById('about-content');
+    const arrow = document.querySelector('.about-arrow');
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        arrow.textContent = '↑';
+    } else {
+        content.style.display = 'none';
+        arrow.textContent = '↓';
+    }
+}
+
+window.addToCartFromDetail = function () {
+    if (!currentDetailKey) return;
+    const t = T[currentLang || 'kz'];
+    const p = productsData[currentDetailKey];
+    const size = selectedSizes[currentDetailKey];
+
+    if (!size && p.type !== 'accessory') {
+        alert(t.selectSize);
+        return;
+    }
+
+    cart.push({
+        key: currentDetailKey,
+        name: p.name,
+        price: p.price,
+        size: size || 'ONE',
+        image: p.image || (p.images && p.images[0]),
+        type: p.type
+    });
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+
+    // Visual feedback
+    const btn = document.getElementById('btn-detail-cart');
+    btn.textContent = '✓ ' + t.addedToCart;
+    setTimeout(() => {
+        btn.textContent = t.toCart;
+    }, 1500);
 }
 
 // --- CART LOGIC ---
@@ -561,9 +742,15 @@ window.openAbout = function (e) { if (e) e.preventDefault(); document.getElement
 window.openPrivacy = function (e) { if (e) e.preventDefault(); document.getElementById('privacy-modal').style.display = 'flex'; return false; }
 window.openShipping = function (e) { if (e) e.preventDefault(); document.getElementById('shipping-modal').style.display = 'flex'; return false; }
 window.openFaq = function (e) { if (e) e.preventDefault(); document.getElementById('faq-modal').style.display = 'flex'; return false; }
-window.closeModal = function (id) { document.getElementById(id).style.display = 'none'; }
+window.closeModal = function (id) {
+    document.getElementById(id).style.display = 'none';
+    document.body.style.overflow = '';
+}
 window.onclick = function (e) {
-    ['size-modal', 'about-modal', 'lang-modal', 'privacy-modal', 'shipping-modal', 'faq-modal'].forEach(id => {
-        if (e.target === document.getElementById(id)) document.getElementById(id).style.display = 'none';
+    ['size-modal', 'about-modal', 'lang-modal', 'privacy-modal', 'shipping-modal', 'faq-modal', 'product-modal', 'cart-modal'].forEach(id => {
+        if (e.target === document.getElementById(id)) {
+            document.getElementById(id).style.display = 'none';
+            document.body.style.overflow = '';
+        }
     });
 }

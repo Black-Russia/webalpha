@@ -11,6 +11,7 @@
     <link rel="apple-touch-icon" href="images/logo_new.png">
 
     <!-- SEO Meta Tags -->
+    <meta name="google-site-verification" content="-zaoXWQxX5cvtMYDJkYVJSLG3W9JYHgJHon-2lKvuIQ" />
     <meta name="description"
         content="ALPHARAON - Қазақстанда жасалған streetwear киім. Сапалы футболкалар, худилар, oversize киім. Астана, Алматы бойынша жеткізу.">
     <meta name="keywords"
@@ -294,6 +295,48 @@
                 </div>
                 <button class="btn-buy" onclick="checkoutCart()" id="btn-checkout" style="margin-top: 16px;">
                     Тапсырыс беру / Оформить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="modal product-modal">
+        <div class="product-modal-content">
+            <span class="close-modal product-close" onclick="closeModal('product-modal')">←</span>
+
+            <!-- Gallery -->
+            <div class="product-gallery" id="product-gallery">
+                <img id="product-main-img" src="" alt="">
+                <div class="gallery-dots" id="product-dots"></div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="product-detail-info">
+                <span class="product-badge" id="product-badge" style="display:none;">НОВИНКА</span>
+                <h2 id="product-name">Product Name</h2>
+                <p class="product-detail-price" id="product-price">0 ₸</p>
+
+                <!-- Size Selector -->
+                <div class="detail-section">
+                    <p class="detail-label" id="size-label">размер:</p>
+                    <div class="size-buttons" id="product-sizes"></div>
+                </div>
+
+                <!-- About Product -->
+                <div class="detail-section about-section">
+                    <div class="about-header" onclick="toggleAbout()">
+                        <span id="about-label">О ТОВАРЕ</span>
+                        <span class="about-arrow">↓</span>
+                    </div>
+                    <div class="about-content" id="about-content">
+                        <p id="about-text">Описание товара...</p>
+                    </div>
+                </div>
+
+                <!-- Add to Cart -->
+                <button class="btn-detail-cart" id="btn-detail-cart" onclick="addToCartFromDetail()">
+                    В КОРЗИНУ
                 </button>
             </div>
         </div>
