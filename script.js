@@ -361,6 +361,22 @@ function renderGrid() {
             badgeHtml = `<span class="card-badge low">${t.lowStock}</span>`;
         }
 
+        // Price & Sale Logic
+        let priceHtml = `<p class="price">${Number(p.price).toLocaleString()}₸</p>`;
+        let saleBadge = '';
+
+        if (p.salePrice) {
+            priceHtml = `
+                <p class="price">
+                    <span style="text-decoration: line-through; color: #999; font-size: 0.9em; margin-right: 6px;">${Number(p.price).toLocaleString()}₸</span>
+                    <span style="color: #d32f2f;">${Number(p.salePrice).toLocaleString()}₸</span>
+                </p>
+            `;
+            if (!isOutOfStock) {
+                saleBadge = `<span class="card-badge" style="top: 10px; right: 10px; left: auto; background: #d32f2f; color: white;">SALE</span>`;
+            }
+        }
+
         const div = document.createElement('div');
         div.className = 'product-card';
         div.onclick = () => openProductDetail(key);
@@ -368,10 +384,11 @@ function renderGrid() {
             <div class="image-box">
                 <img src="${imgSrc}" onerror="this.style.background='#f0f0f0'" loading="lazy">
                 ${badgeHtml}
+                ${saleBadge}
             </div>
             <div class="product-info">
                 <h3>${p.name}</h3>
-                <p class="price">${Number(p.price).toLocaleString()}₸</p>
+                ${priceHtml}
             </div>
         `;
         grid.appendChild(div);
@@ -456,7 +473,15 @@ window.openProductDetail = function (key) {
     // Info
     document.getElementById('product-badge').style.display = 'none'; // Can show NEW badge if needed
     document.getElementById('product-name').textContent = p.name;
-    document.getElementById('product-price').textContent = `${Number(p.price).toLocaleString()}₸`;
+
+    if (p.salePrice) {
+        document.getElementById('product-price').innerHTML = `
+            <span style="text-decoration: line-through; color: #999; margin-right: 10px;">${Number(p.price).toLocaleString()}₸</span>
+            <span style="color: #d32f2f;">${Number(p.salePrice).toLocaleString()}₸</span>
+        `;
+    } else {
+        document.getElementById('product-price').textContent = `${Number(p.price).toLocaleString()}₸`;
+    }
 
     // Size selector
     document.getElementById('size-label').textContent = t.sizeLabel;
@@ -555,7 +580,7 @@ window.addToCartFromDetail = function () {
     cart.push({
         key: currentDetailKey,
         name: p.name,
-        price: p.price,
+        price: p.salePrice || p.price,
         size: size || 'ONE',
         image: p.image || (p.images && p.images[0]),
         type: p.type
@@ -583,7 +608,7 @@ window.addToCart = function (key) {
     cart.push({
         key: key,
         name: p.name,
-        price: p.price,
+        price: p.salePrice || p.price,
         size: size,
         image: p.image,
         type: p.type
@@ -675,7 +700,14 @@ window.applyPromo = function (codeArg) {
     // Find promo
     const promoKey = Object.keys(promoCodes).find(k => promoCodes[k].code === code);
     if (promoKey) {
-        activePromo = promoCodes[promoKey];
+        const p = promoCodes[promoKey];
+        if (p.limit && (p.used || 0) >= p.limit) {
+            alert("This promo code has reached its usage limit!");
+            activePromo = null;
+            if (input) input.value = "";
+            return;
+        }
+        activePromo = p;
         renderCart();
         alert(t.promoApplied + "!");
         if (input) input.value = activePromo.code;
@@ -714,7 +746,7 @@ window.buyItem = function (key) {
     pendingOrder = [{
         key: key,
         name: p.name,
-        price: p.price,
+        price: p.salePrice || p.price,
         size: size,
         type: p.type
     }];
@@ -788,6 +820,14 @@ window.selectCity = function (city) {
     });
 
     window.open(`https://wa.me/77055020133?text=${encodeURIComponent(msg)}`, '_blank');
+
+    // Increment promo usage
+    if (activePromo) {
+        const promoKey = Object.keys(promoCodes).find(k => promoCodes[k].code === activePromo.code);
+        if (promoKey) {
+            window.db.ref(`promocodes/${promoKey}/used`).transaction(current => (current || 0) + 1);
+        }
+    }
 
     closeModal('city-modal');
 

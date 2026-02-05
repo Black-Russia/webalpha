@@ -167,10 +167,13 @@
 
     <!-- ADD PRODUCT -->
     <div class="admin-box">
-        <h2>➕ Жаңа тауар қосу / Add Product</h2>
+        <h2 id="form-title">➕ Жаңа тауар қосу / Add Product</h2>
+        <input type="hidden" id="edit-key"> <!-- Hidden key for editing -->
+
         <input type="text" id="new-name" placeholder="Product Name (e.g. OPIUM HOODIE)">
         <div class="row">
             <input type="number" id="new-price" placeholder="Price (KZT)">
+            <input type="number" id="new-sale-price" placeholder="Sale Price (Optional)" style="border-color: #ff6b35;">
             <select id="new-type">
                 <option value="clothing">Clothing (S/M/L/XL)</option>
                 <option value="accessory">Accessory (One Size)</option>
@@ -192,7 +195,11 @@
             <input type="text" id="new-care" placeholder="Care (e.g. Machine wash)">
         </div>
 
-        <button class="btn-add" onclick="addProduct()" style="margin-top: 16px;">CREATE PRODUCT</button>
+        <div class="row" style="margin-top: 16px;">
+            <button class="btn-add" id="btn-submit" onclick="saveProduct()">CREATE PRODUCT</button>
+            <button class="btn-del" id="btn-cancel" onclick="cancelEdit()"
+                style="display:none; background:#999;">CANCEL</button>
+        </div>
         <small style="display:block; margin-top:10px; color:#666;">Put image files in <b>images/</b> folder</small>
     </div>
 
@@ -214,6 +221,7 @@
         <div class="row">
             <input type="text" id="promo-code" placeholder="Code (e.g. SALE10)" style="flex:2">
             <input type="number" id="promo-value" placeholder="Discount" style="flex:1">
+            <input type="number" id="promo-limit" placeholder="Limit (Qty)" style="flex:1">
             <select id="promo-type" style="flex:1">
                 <option value="percent">% Off</option>
                 <option value="fixed">₸ Off</option>
@@ -224,6 +232,8 @@
     </div>
 
     <script>
+        let allProducts = {};
+
         setTimeout(() => {
             if (window.db) {
                 document.getElementById('connection-status').innerText = "ONLINE ✓";
@@ -237,6 +247,8 @@
             window.db.ref('products').on('value', (snap) => {
                 const list = document.getElementById('products-list');
                 const products = snap.val();
+
+                allProducts = products || {}; // Save for editing
 
                 if (!products) { list.innerHTML = "No products."; return; }
 
@@ -276,14 +288,19 @@
                         specsHtml = parts.length ? `<br><small style="color:#10b981">${parts.join(' • ')}</small>` : '';
                     }
 
+                    const saleInfo = p.salePrice ? `<span style="text-decoration:line-through; color:#999; margin-left:5px;">${p.price}₸</span> <b style="color:#d32f2f;">${p.salePrice}₸</b>` : `(${p.price}₸)`;
+
                     div.innerHTML = `
                         <div>
-                            <b>${p.name}</b> <span style="color:#666">(${p.price}₸)</span>
+                            <b>${p.name}</b> ${saleInfo}
                             <br><small style="color:#999">${mainImg} ${imgCount > 1 ? `(+${imgCount - 1} photos)` : ''} • ${isAccessory ? 'Accessory' : 'Clothing'}</small>
                             ${specsHtml}
                         </div>
                         ${stockHtml}
-                        <button class="btn-del" onclick="deleteProduct('${key}')">🗑️</button>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-del" style="background:#444;" onclick="editProduct('${key}')">✏️</button>
+                            <button class="btn-del" onclick="deleteProduct('${key}')">🗑️</button>
+                        </div>
                     `;
                     list.appendChild(div);
                 });
@@ -342,6 +359,7 @@
                 list.innerHTML = "";
                 Object.entries(val).forEach(([key, p]) => {
                     const div = document.createElement('div');
+                    const limitInfo = p.limit ? `<small style="margin-left:8px; color:#666;">(${p.used || 0}/${p.limit})</small>` : '';
                     div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid #eee; margin-bottom:5px;";
                     div.innerHTML = `
                         <div>
@@ -349,6 +367,7 @@
                             <span style="color:#10b981; font-weight:600; margin-left:8px;">
                                 ${p.type === 'percent' ? `-${p.value}%` : `-${p.value}₸`}
                             </span>
+                            ${limitInfo}
                         </div>
                         <button class="btn-del" onclick="deletePromo('${key}')">Remove</button>
                     `;
@@ -358,12 +377,14 @@
         }
 
         // ACTIONS
-        window.addProduct = function () {
+        window.saveProduct = function () {
+            const key = document.getElementById('edit-key').value;
             const name = document.getElementById('new-name').value;
             const price = document.getElementById('new-price').value;
+            const salePrice = document.getElementById('new-sale-price').value;
             const type = document.getElementById('new-type').value;
 
-            // Images (main required, others optional)
+            // Images
             const img1 = document.getElementById('new-img').value || 'placeholder.webp';
             const img2 = document.getElementById('new-img-2').value;
             const img3 = document.getElementById('new-img-3').value;
@@ -371,7 +392,7 @@
             if (img2) images.push(img2);
             if (img3) images.push(img3);
 
-            // Specs (all optional)
+            // Specs
             const fabric = document.getElementById('new-fabric').value;
             const gsm = document.getElementById('new-gsm').value;
             const fit = document.getElementById('new-fit').value;
@@ -379,18 +400,16 @@
 
             if (!name || !price) return alert("Fill Name and Price!");
 
-            const stock = type === 'accessory' ? { ONE: 0 } : { S: 0, M: 0, L: 0, XL: 0 };
-
             const productData = {
                 name,
                 price: Number(price),
-                image: img1,  // backward compatibility
+                salePrice: salePrice ? Number(salePrice) : null,
+                image: img1,
                 images: images,
-                type,
-                stock
+                type
             };
 
-            // Add specs only if at least one is filled
+            // Specs Object
             if (fabric || gsm || fit || care) {
                 productData.specs = {};
                 if (fabric) productData.specs.fabric = fabric;
@@ -399,18 +418,64 @@
                 if (care) productData.specs.care = care;
             }
 
-            window.db.ref('products').push().set(productData).then(() => {
-                alert("Product added!");
-                document.getElementById('new-name').value = "";
-                document.getElementById('new-price').value = "";
-                document.getElementById('new-img').value = "";
-                document.getElementById('new-img-2').value = "";
-                document.getElementById('new-img-3').value = "";
-                document.getElementById('new-fabric').value = "";
-                document.getElementById('new-gsm').value = "";
-                document.getElementById('new-fit').value = "";
-                document.getElementById('new-care').value = "";
-            });
+            if (key) {
+                // UPDATE
+                window.db.ref(`products/${key}`).update(productData).then(() => {
+                    alert("Updated!");
+                    cancelEdit();
+                });
+            } else {
+                // CREATE
+                productData.stock = type === 'accessory' ? { ONE: 0 } : { S: 0, M: 0, L: 0, XL: 0 };
+
+                window.db.ref('products').push().set(productData).then(() => {
+                    alert("Created!");
+                    cancelEdit();
+                });
+            }
+        }
+
+        window.editProduct = function (key) {
+            const p = allProducts[key];
+            if (!p) return;
+
+            document.getElementById('form-title').innerText = "✏️ Тауарды өзгерту / Edit Product";
+            document.getElementById('edit-key').value = key;
+
+            document.getElementById('new-name').value = p.name;
+            document.getElementById('new-price').value = p.price;
+            document.getElementById('new-sale-price').value = p.salePrice || "";
+            document.getElementById('new-type').value = p.type;
+
+            document.getElementById('new-img').value = (p.images && p.images[0]) || p.image || "";
+            document.getElementById('new-img-2').value = (p.images && p.images[1]) || "";
+            document.getElementById('new-img-3').value = (p.images && p.images[2]) || "";
+
+            if (p.specs) {
+                document.getElementById('new-fabric').value = p.specs.fabric || "";
+                document.getElementById('new-gsm').value = p.specs.gsm || "";
+                document.getElementById('new-fit').value = p.specs.fit || "";
+                document.getElementById('new-care').value = p.specs.care || "";
+            }
+
+            document.getElementById('btn-submit').innerText = "UPDATE PRODUCT";
+            document.getElementById('btn-submit').style.background = "#10b981";
+            document.getElementById('btn-cancel').style.display = "inline-block";
+
+            window.scrollTo(0, 0);
+        }
+
+        window.cancelEdit = function () {
+            document.getElementById('form-title').innerText = "➕ Жаңа тауар қосу / Add Product";
+            document.getElementById('edit-key').value = "";
+
+            // Clear inputs
+            ['new-name', 'new-price', 'new-sale-price', 'new-img', 'new-img-2', 'new-img-3',
+                'new-fabric', 'new-gsm', 'new-fit', 'new-care'].forEach(id => document.getElementById(id).value = "");
+
+            document.getElementById('btn-submit').innerText = "CREATE PRODUCT";
+            document.getElementById('btn-submit').style.background = "#111";
+            document.getElementById('btn-cancel').style.display = "none";
         }
 
         window.updStock = function (key, size, qty) {
@@ -444,6 +509,7 @@
         window.addPromo = function () {
             const code = document.getElementById('promo-code').value.toUpperCase().trim();
             const value = document.getElementById('promo-value').value;
+            const limit = document.getElementById('promo-limit').value;
             const type = document.getElementById('promo-type').value;
 
             if (!code || !value) { alert("Enter code and discount value"); return; }
@@ -451,10 +517,13 @@
             window.db.ref('promocodes').push({
                 code: code,
                 value: Number(value),
+                limit: limit ? Number(limit) : null,
+                used: 0,
                 type: type
             });
             document.getElementById('promo-code').value = "";
             document.getElementById('promo-value').value = "";
+            document.getElementById('promo-limit').value = "";
         }
 
         window.deletePromo = function (key) {
