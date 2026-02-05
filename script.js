@@ -86,7 +86,11 @@ const T = {
         sizeLabel: "Өлшем:",
         toCart: "СЕБЕТКЕ САЛУ",
         newBadge: "ЖАҢА",
-        addedToCart: "Қосылды"
+        addedToCart: "Қосылды",
+        promoPlaceholder: "Промокод",
+        discount: "Жеңілдік",
+        invalidPromo: "Жарамсыз код",
+        promoApplied: "Қолданылды"
     },
     ru: {
         announcement: "БЕСПЛАТНАЯ ДОСТАВКА ОТ 15 000 ₸",
@@ -174,7 +178,11 @@ const T = {
         sizeLabel: "Размер:",
         toCart: "В КОРЗИНУ",
         newBadge: "НОВИНКА",
-        addedToCart: "Добавлено"
+        addedToCart: "Добавлено",
+        promoPlaceholder: "Промокод",
+        discount: "Скидка",
+        invalidPromo: "Неверный код",
+        promoApplied: "Применен"
     }
 };
 
@@ -182,6 +190,8 @@ let currentLang = localStorage.getItem('alpharaon_lang') || null;
 let productsData = {};
 let selectedSizes = {};
 let currentCategory = 'all';
+let promoCodes = {};
+let activePromo = null;
 let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
 // --- INIT ---
@@ -307,6 +317,16 @@ function initStore() {
         }
         renderGrid();
     });
+    window.db.ref('promocodes').on('value', (snap) => {
+        promoCodes = snap.val() || {};
+
+        // Auto-apply promo from URL
+        const params = new URLSearchParams(window.location.search);
+        const urlPromo = params.get('promo');
+        if (urlPromo && !activePromo) {
+            applyPromo(urlPromo);
+        }
+    });
 }
 
 function renderGrid() {
@@ -332,25 +352,6 @@ function renderGrid() {
         }
         const isOutOfStock = totalStock === 0;
         const isLowStock = totalStock > 0 && totalStock <= 3;
-
-        // Deterministic review count based on product ID (1-10, same for all users)
-        const hash = key.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const reviewCount = (hash % 10) + 1; // Always 1 to 10
-
-        let sizeHtml = '';
-        if (isAccessory) {
-            // No size selection needed, auto-select ONE
-            selectedSizes[key] = 'ONE';
-            const qty = (p.stock && p.stock.ONE) || 0;
-            sizeHtml = qty > 0
-                ? `<p style="color:#666; font-size:12px; margin-bottom:12px;">${t.oneSize}</p>`
-                : `<p style="color:#999; font-size:12px; margin-bottom:12px;">—</p>`;
-        } else {
-            sizeHtml = `
-                <button class="btn-text" onclick="openSizeGuide()">${t.sizeGuide}</button>
-                <div class="size-selector" id="sizes-${key}">${renderSizeChips(key, p.stock)}</div>
-            `;
-        }
 
         // Low stock / out of stock badges
         let badgeHtml = '';
@@ -632,7 +633,58 @@ window.renderCart = function () {
         `;
     }).join('');
 
-    document.getElementById('cart-total-price').innerText = `${total.toLocaleString()} ₸`;
+    if (activePromo) {
+        let discountAmount = 0;
+        if (activePromo.type === 'percent') {
+            discountAmount = total * (activePromo.value / 100);
+        } else {
+            discountAmount = activePromo.value;
+        }
+        const finalTotal = Math.max(0, total - discountAmount);
+
+        document.getElementById('cart-total-price').innerHTML = `
+            <span style="text-decoration: line-through; color: #999; font-size: 14px;">${total.toLocaleString()} ₸</span>
+            <br>
+            <span style="color: #10b981;">-${discountAmount.toLocaleString()} ₸</span>
+            <br>
+            ${finalTotal.toLocaleString()} ₸
+        `;
+    } else {
+        document.getElementById('cart-total-price').innerText = `${total.toLocaleString()} ₸`;
+    }
+
+    // Update promo input placeholder
+    const input = document.getElementById('cart-promo-input');
+    if (input) {
+        input.placeholder = t.promoPlaceholder;
+        if (activePromo) {
+            input.value = activePromo.code;
+            input.disabled = true;
+            input.style.borderColor = "#10b981";
+        }
+    }
+}
+
+window.applyPromo = function (codeArg) {
+    const input = document.getElementById('cart-promo-input');
+    const code = (codeArg || input.value).trim().toUpperCase();
+    const t = T[currentLang || 'kz'];
+
+    if (!code) return;
+
+    // Find promo
+    const promoKey = Object.keys(promoCodes).find(k => promoCodes[k].code === code);
+    if (promoKey) {
+        activePromo = promoCodes[promoKey];
+        renderCart();
+        alert(t.promoApplied + "!");
+        if (input) input.value = activePromo.code;
+    } else {
+        if (!codeArg) {
+            alert(t.invalidPromo);
+            input.value = "";
+        }
+    }
 }
 
 window.removeFromCart = function (index) {
@@ -704,8 +756,22 @@ window.selectCity = function (city) {
 
     const cityDisplay = t.cities[city] || city;
 
+    let discountInfo = "";
+    let finalTotal = itemsTotal + shippingCost;
+
+    if (activePromo) {
+        let discountAmount = 0;
+        if (activePromo.type === 'percent') {
+            discountAmount = itemsTotal * (activePromo.value / 100);
+        } else {
+            discountAmount = activePromo.value;
+        }
+        finalTotal = Math.max(0, itemsTotal - discountAmount) + shippingCost;
+        discountInfo = `\n${t.discount} (${activePromo.code}): -${discountAmount.toLocaleString()} ₸`;
+    }
+
     // Create clean message without emojis to avoid encoding issues
-    const msg = `${t.waGreeting}\n\n${itemsMsg}------------------\n${t.waCity}: ${cityDisplay}\n${t.waDelivery}: ${shippingText}\n${t.total}: ${(itemsTotal + shippingCost).toLocaleString()} ₸`;
+    const msg = `${t.waGreeting}\n\n${itemsMsg}------------------\n${t.waCity}: ${cityDisplay}\n${t.waDelivery}: ${shippingText}${discountInfo}\n${t.total}: ${finalTotal.toLocaleString()} ₸`;
 
     // Save order to Firebase (each item separately)
     pendingOrder.forEach(item => {

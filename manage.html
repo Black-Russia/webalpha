@@ -208,6 +208,21 @@
         <div id="orders-list">Loading...</div>
     </div>
 
+    <!-- PROMO CODES -->
+    <div class="admin-box">
+        <h2>🎟️ Промокоды / Promo Codes</h2>
+        <div class="row">
+            <input type="text" id="promo-code" placeholder="Code (e.g. SALE10)" style="flex:2">
+            <input type="number" id="promo-value" placeholder="Discount" style="flex:1">
+            <select id="promo-type" style="flex:1">
+                <option value="percent">% Off</option>
+                <option value="fixed">₸ Off</option>
+            </select>
+            <button class="btn-add" onclick="addPromo()" style="flex:1; margin-top:5px;">ADD</button>
+        </div>
+        <div id="promo-list" style="margin-top: 15px;">Loading...</div>
+    </div>
+
     <script>
         setTimeout(() => {
             if (window.db) {
@@ -317,6 +332,29 @@
                     list.appendChild(div);
                 });
             });
+
+            // PROMO CODES
+            window.db.ref('promocodes').on('value', (snap) => {
+                const list = document.getElementById('promo-list');
+                const val = snap.val();
+                if (!val) { list.innerHTML = "No promo codes active."; return; }
+
+                list.innerHTML = "";
+                Object.entries(val).forEach(([key, p]) => {
+                    const div = document.createElement('div');
+                    div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid #eee; margin-bottom:5px;";
+                    div.innerHTML = `
+                        <div>
+                            <b>${p.code}</b> 
+                            <span style="color:#10b981; font-weight:600; margin-left:8px;">
+                                ${p.type === 'percent' ? `-${p.value}%` : `-${p.value}₸`}
+                            </span>
+                        </div>
+                        <button class="btn-del" onclick="deletePromo('${key}')">Remove</button>
+                    `;
+                    list.appendChild(div);
+                });
+            });
         }
 
         // ACTIONS
@@ -401,6 +439,26 @@
 
         window.rejectOrder = function (orderKey) {
             if (confirm("Mark as fake?")) window.db.ref(`orders/${orderKey}`).update({ status: 'rejected' });
+        }
+
+        window.addPromo = function () {
+            const code = document.getElementById('promo-code').value.toUpperCase().trim();
+            const value = document.getElementById('promo-value').value;
+            const type = document.getElementById('promo-type').value;
+
+            if (!code || !value) { alert("Enter code and discount value"); return; }
+
+            window.db.ref('promocodes').push({
+                code: code,
+                value: Number(value),
+                type: type
+            });
+            document.getElementById('promo-code').value = "";
+            document.getElementById('promo-value').value = "";
+        }
+
+        window.deletePromo = function (key) {
+            if (confirm("Delete this promo code?")) window.db.ref(`promocodes/${key}`).remove();
         }
     </script>
 </body>

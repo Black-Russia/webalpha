@@ -289,6 +289,17 @@
                 <!-- Items will be injected here -->
             </div>
             <div class="cart-footer">
+                <div class="promo-box" style="margin-bottom: 8px; display: flex; gap: 8px;">
+                    <input type="text" id="cart-promo-input" placeholder="Promo Code"
+                        style="flex: 1; padding: 10px; border: 1px solid #ddd; text-transform: uppercase;">
+                    <button onclick="applyPromo()"
+                        style="background: #111; color: white; border: none; padding: 0 15px; cursor: pointer;">OK</button>
+                </div>
+                <!-- Insta Link -->
+                <a href="https://www.instagram.com/alpharaondev/" target="_blank"
+                    style="display:block; font-size:11px; color:#666; text-align:center; margin-bottom:15px; text-decoration:underline;">
+                    Получить промокод в Instagram (-5%) ↗
+                </a>
                 <div class="cart-total">
                     <span id="cart-total-text" style="color: #666;">Барлығы / Итого:</span>
                     <strong id="cart-total-price" style="font-size: 18px;">0 ₸</strong>
