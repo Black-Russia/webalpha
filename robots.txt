@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://alpharaon.store/sitemap.xml
+Sitemap: https://alpharaon.com/sitemap.xml
