@@ -56,15 +56,20 @@
             <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Сәлем / Привет</h2>
             <p style="color: #666; margin-bottom: 30px; font-size: 14px;">Тіліңізді таңдаңыз / Выберите язык</p>
             <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-                <button onclick="setLang('kz')" class="lang-btn">Қазақша</button>
-                <button onclick="setLang('ru')" class="lang-btn">Русский</button>
+                <button onclick="selectLangFromWelcome('kz')" class="lang-btn">Қазақша</button>
+                <button onclick="selectLangFromWelcome('ru')" class="lang-btn">Русский</button>
             </div>
         </div>
     </div>
 
-    <!-- Announcement Bar -->
+    <!-- Announcement Bar (Marquee) -->
     <div class="announcement-bar" id="announcement">
-        ТЕГІН ЖЕТКІЗУ 15 000 ₸ АСТАМ ТАПСЫРЫСТАРҒА
+        <div class="marquee-content">
+            <span>🎁 ТЕГІН ЖЕТКІЗУ 15.000₸+ • FREE DELIVERY • ALPHARAON © 2026 • NEW COLLECTION • 🎁 ТЕГІН ЖЕТКІЗУ
+                15.000₸+ • FREE DELIVERY • ALPHARAON © 2026 • NEW COLLECTION •</span>
+            <span>🎁 ТЕГІН ЖЕТКІЗУ 15.000₸+ • FREE DELIVERY • ALPHARAON © 2026 • NEW COLLECTION • 🎁 ТЕГІН ЖЕТКІЗУ
+                15.000₸+ • FREE DELIVERY • ALPHARAON © 2026 • NEW COLLECTION •</span>
+        </div>
     </div>
 
     <!-- Navigation -->
@@ -74,9 +79,109 @@
             <span>ALPHARAON</span>
         </a>
         <div class="nav-right">
-            <span class="lang-toggle" onclick="openLangModal()">🌐</span>
+            <button class="nav-icon" onclick="openCart()" aria-label="Cart">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 6h15l-1.5 9h-12z"></path>
+                    <circle cx="9" cy="20" r="1"></circle>
+                    <circle cx="18" cy="20" r="1"></circle>
+                </svg>
+                <span class="cart-badge" id="cart-badge">0</span>
+            </button>
+            <button class="nav-icon" onclick="openMenu()" aria-label="Menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
         </div>
     </nav>
+
+    <!-- Slideout Menu -->
+    <div id="menu-overlay" class="menu-overlay" onclick="closeMenu()"></div>
+    <div id="side-menu" class="side-menu">
+        <div class="menu-header">
+            <div class="menu-selectors">
+                <!-- Language Selector (Custom Dropdown) -->
+                <div class="lang-dropdown-custom" id="lang-dropdown-wrapper">
+                    <button class="city-dropdown-toggle" onclick="toggleLangDropdown()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                            </path>
+                        </svg>
+                        <span id="current-lang-display">KZ</span>
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="city-dropdown-menu" id="lang-dropdown-menu">
+                        <button class="city-option" onclick="selectLangFromDropdown('kz')">Қазақша</button>
+                        <button class="city-option" onclick="selectLangFromDropdown('ru')">Русский</button>
+                    </div>
+                </div>
+                <!-- City Selector (Custom Dropdown) -->
+                <div class="city-dropdown-custom" id="city-dropdown-wrapper">
+                    <button class="city-dropdown-toggle" onclick="toggleCityDropdown()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span id="current-city-display">Астана</span>
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="city-dropdown-menu" id="city-dropdown-menu">
+                        <button class="city-option" onclick="selectCityFromDropdown('Astana', 'Астана')">Астана</button>
+                        <button class="city-option" onclick="selectCityFromDropdown('Almaty', 'Алматы')">Алматы</button>
+                        <button class="city-option"
+                            onclick="selectCityFromDropdown('Shymkent', 'Шымкент')">Шымкент</button>
+                        <button class="city-option" onclick="selectCityFromDropdown('Other', 'Другой')">Другой
+                            город</button>
+                    </div>
+                </div>
+            </div>
+            <button class="menu-close" onclick="closeMenu()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <nav class="menu-nav">
+            <a href="#" onclick="filterCategory('all'); closeMenu(); scrollToProducts();">магазин</a>
+            <a href="#" onclick="filterCategory('clothing'); closeMenu(); scrollToProducts();">киім / одежда</a>
+            <a href="#" onclick="filterCategory('accessory'); closeMenu(); scrollToProducts();">аксессуар</a>
+            <a href="#" onclick="openSizeModal(); closeMenu();">өлшем кестесі</a>
+        </nav>
+        <div class="menu-footer">
+            <a href="https://instagram.com/alpharaondev" target="_blank" class="social-link">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="2" y="2" width="20" height="20" rx="5"></rect>
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <circle cx="18" cy="6" r="1.5" fill="currentColor"></circle>
+                </svg>
+            </a>
+            <a href="https://wa.me/77055020133" target="_blank" class="social-link">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path
+                        d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                    </path>
+                </svg>
+            </a>
+        </div>
+    </div>
+    </svg>
+    </a>
+    </div>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -177,21 +282,31 @@
         </div>
     </div>
 
-    <!-- City Selection Modal -->
-    <div id="city-modal" class="modal">
-        <div class="modal-content city-modal-content">
-            <span class="close-modal" onclick="closeModal('city-modal')">&times;</span>
-            <h3 id="city-title" style="margin-bottom: 16px; font-size: 18px;">Қаланы таңдаңыз</h3>
-            <div class="city-list">
-                <button class="city-btn" onclick="selectCity('Astana')">Астана (1 500₸)</button>
-                <button class="city-btn" onclick="selectCity('Almaty')">Алматы (1 500₸)</button>
-                <button class="city-btn" onclick="selectCity('Karaganda')">Қарағанды (2 000₸)</button>
-                <button class="city-btn" onclick="selectCity('Shymkent')">Шымкент (2 000₸)</button>
-                <button class="city-btn" onclick="selectCity('Aktobe')">Ақтөбе (2 000₸)</button>
-                <button class="city-btn" onclick="selectCity('Other')">Басқа қала (3 000₸)</button>
+    <!-- City Confirmation Modal (Checkout) -->
+    <div id="city-confirm-modal" class="modal">
+        <div class="modal-content city-confirm-content">
+            <span class="close-modal" onclick="closeModal('city-confirm-modal')">&times;</span>
+            <h3 id="city-confirm-title" style="margin-bottom: 8px; font-size: 18px;">Подтвердите город</h3>
+            <p id="city-confirm-text" style="font-size: 16px; margin-bottom: 24px; color: #333;">Ваш город <strong
+                    id="confirm-city-name">Астана</strong>?</p>
+            <div class="city-confirm-buttons">
+                <button class="btn-confirm-yes" onclick="confirmCity()">Да</button>
+                <button class="btn-confirm-no" onclick="showCityPicker()">Нет, изменить</button>
             </div>
-            <p style="margin-top: 12px; font-size: 12px; color: #666;" id="city-note">*15 000₸ тапсырыс - Астана/Алматы
-                тегін</p>
+        </div>
+    </div>
+
+    <!-- City Picker Modal (No prices) -->
+    <div id="city-picker-modal" class="modal">
+        <div class="modal-content city-modal-content">
+            <span class="close-modal" onclick="closeModal('city-picker-modal')">&times;</span>
+            <h3 style="margin-bottom: 16px; font-size: 18px;">Выберите город</h3>
+            <div class="city-list">
+                <button class="city-btn" onclick="pickCity('Astana')">Астана</button>
+                <button class="city-btn" onclick="pickCity('Almaty')">Алматы</button>
+                <button class="city-btn" onclick="pickCity('Shymkent')">Шымкент</button>
+                <button class="city-btn" onclick="pickCity('Other')">Другой город</button>
+            </div>
         </div>
     </div>
 
@@ -269,16 +384,6 @@
         </div>
     </div>
 
-    <!-- Cart FAB -->
-    <div id="cart-fab" class="cart-fab" onclick="openCart()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="21" r="1"></circle>
-            <circle cx="20" cy="21" r="1"></circle>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-        </svg>
-        <span id="cart-badge" class="cart-badge">0</span>
-    </div>
 
     <!-- Cart Modal -->
     <div id="cart-modal" class="modal">

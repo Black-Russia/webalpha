@@ -194,6 +194,15 @@ let promoCodes = {};
 let activePromo = null;
 let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
+// --- CART COUNT ---
+function updateCartCount() {
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+        badge.innerText = cart.length;
+        badge.setAttribute('data-count', cart.length);
+    }
+}
+
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
     if (currentLang) {
@@ -201,23 +210,234 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLang(currentLang);
     }
     updateCartCount();
+    updateMenuLangText();
+    updateCityDropdown();
     setTimeout(() => { if (window.db) initStore(); }, 500);
 });
 
-// --- LANGUAGE ---
-window.setLang = function (lang) {
+// --- LANGUAGE DROPDOWN ---
+window.toggleLangDropdown = function () {
+    const wrapper = document.getElementById('lang-dropdown-wrapper');
+    wrapper.classList.toggle('open');
+    // Close city dropdown if open
+    document.getElementById('city-dropdown-wrapper').classList.remove('open');
+}
+
+window.selectLangFromDropdown = function (lang) {
     currentLang = lang;
     localStorage.setItem('alpharaon_lang', lang);
-    document.getElementById('lang-modal').style.display = 'none';
+
+    // Update display
+    const display = document.getElementById('current-lang-display');
+    if (display) display.innerText = lang.toUpperCase();
+
+    // Close dropdown
+    document.getElementById('lang-dropdown-wrapper').classList.remove('open');
+
+    // Apply language
     applyLang(lang);
-    // Force re-render products with new language
+    updateCityDropdown(); // Update city text in new language
+
+    // Re-render products
     if (Object.keys(productsData).length > 0) {
         renderGrid();
     }
 }
 
-window.openLangModal = function () {
-    document.getElementById('lang-modal').style.display = 'flex';
+// Close dropdowns when clicking outside
+document.addEventListener('click', function (e) {
+    const langDropdown = document.getElementById('lang-dropdown-wrapper');
+    if (langDropdown && !langDropdown.contains(e.target)) {
+        langDropdown.classList.remove('open');
+    }
+});
+
+// Handle language selection from welcome modal
+window.selectLangFromWelcome = function (lang) {
+    currentLang = lang;
+    localStorage.setItem('alpharaon_lang', lang);
+
+    // Close welcome modal
+    document.getElementById('lang-modal').style.display = 'none';
+
+    // Update dropdown display
+    const display = document.getElementById('current-lang-display');
+    if (display) display.innerText = lang.toUpperCase();
+
+    // Apply language
+    applyLang(lang);
+    updateCityDropdown();
+
+    // Re-render products
+    if (Object.keys(productsData).length > 0) {
+        renderGrid();
+    }
+}
+
+// --- SLIDEOUT MENU ---
+let selectedCity = localStorage.getItem('alpharaon_city') || 'Astana';
+
+window.openMenu = function () {
+    document.getElementById('side-menu').classList.add('open');
+    document.getElementById('menu-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+window.closeMenu = function () {
+    document.getElementById('side-menu').classList.remove('open');
+    document.getElementById('menu-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+window.openCityModal = function () {
+    closeMenu();
+    // Switch button handlers to setCity (save preference only)
+    const cityBtns = document.querySelectorAll('.city-btn');
+    const cities = ['Astana', 'Almaty', 'Karaganda', 'Shymkent', 'Aktobe', 'Other'];
+    cityBtns.forEach((btn, i) => {
+        btn.onclick = () => setCity(cities[i]);
+    });
+    document.getElementById('city-modal').style.display = 'flex';
+}
+
+window.setCity = function (city) {
+    selectedCity = city;
+    localStorage.setItem('alpharaon_city', city);
+    const t = T[currentLang || 'kz'];
+    const cityName = t.cities[city] || city;
+    const cityText = document.getElementById('current-city-text');
+    if (cityText) cityText.innerText = cityName.toLowerCase();
+    closeModal('city-modal');
+}
+
+window.scrollToProducts = function () {
+    const productsSection = document.querySelector('.products');
+    if (productsSection) {
+        productsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// --- CUSTOM CITY DROPDOWN ---
+window.toggleCityDropdown = function () {
+    const wrapper = document.getElementById('city-dropdown-wrapper');
+    wrapper.classList.toggle('open');
+}
+
+window.selectCityFromDropdown = function (cityValue, cityLabel) {
+    selectedCity = cityValue;
+    localStorage.setItem('alpharaon_city', cityValue);
+
+    // Update display text
+    const display = document.getElementById('current-city-display');
+    if (display) display.innerText = cityLabel;
+
+    // Close dropdown
+    document.getElementById('city-dropdown-wrapper').classList.remove('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function (e) {
+    const dropdown = document.getElementById('city-dropdown-wrapper');
+    if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+    }
+});
+
+// Update city display on page load
+function updateCityDropdown() {
+    const display = document.getElementById('current-city-display');
+    if (display && selectedCity) {
+        const cityLabels = {
+            'Astana': 'Астана',
+            'Almaty': 'Алматы',
+            'Shymkent': 'Шымкент',
+            'Other': 'Другой'
+        };
+        display.innerText = cityLabels[selectedCity] || selectedCity;
+    }
+}
+
+// --- NEW CHECKOUT FLOW ---
+const cityNames = {
+    'Astana': 'Астана',
+    'Almaty': 'Алматы',
+    'Shymkent': 'Шымкент',
+    'Other': 'Другой город'
+};
+
+// Start checkout - show city confirmation
+window.startCheckout = function () {
+    closeModal('cart-modal');
+
+    // Get translated city names
+    const t = T[currentLang || 'kz'];
+    const cityName = t.cities[selectedCity] || selectedCity;
+
+    // Update modal text in current language
+    const isRu = (currentLang === 'ru');
+    document.getElementById('city-confirm-title').innerText = isRu ? 'Подтвердите город' : 'Қаланы растаңыз';
+    document.getElementById('city-confirm-text').innerHTML = isRu
+        ? `Ваш город <strong id="confirm-city-name">${cityName}</strong>?`
+        : `Сіздің қалаңыз <strong id="confirm-city-name">${cityName}</strong>?`;
+
+    // Update buttons
+    document.querySelector('.btn-confirm-yes').innerText = isRu ? 'Да' : 'Иә';
+    document.querySelector('.btn-confirm-no').innerText = isRu ? 'Нет, изменить' : 'Жоқ, өзгерту';
+
+    document.getElementById('city-confirm-modal').style.display = 'flex';
+}
+
+// User confirms city - proceed with order
+window.confirmCity = function () {
+    closeModal('city-confirm-modal');
+    proceedWithOrder(selectedCity);
+}
+
+// User wants to change city
+window.showCityPicker = function () {
+    closeModal('city-confirm-modal');
+
+    // Translate modal content
+    const isRu = (currentLang === 'ru');
+    const t = T[currentLang || 'kz'];
+
+    // Update title
+    const modal = document.getElementById('city-picker-modal');
+    const title = modal.querySelector('h3');
+    if (title) title.innerText = isRu ? 'Выберите город' : 'Қаланы таңдаңыз';
+
+    // Update city buttons
+    const cityBtns = modal.querySelectorAll('.city-btn');
+    const cities = ['Astana', 'Almaty', 'Shymkent', 'Other'];
+    cityBtns.forEach((btn, i) => {
+        btn.innerText = t.cities[cities[i]] || cities[i];
+    });
+
+    document.getElementById('city-picker-modal').style.display = 'flex';
+}
+
+// User picks a new city
+window.pickCity = function (city) {
+    selectedCity = city;
+    localStorage.setItem('alpharaon_city', city);
+    const citySelect = document.getElementById('city-select');
+    if (citySelect) citySelect.value = city;
+    closeModal('city-picker-modal');
+    proceedWithOrder(city);
+}
+
+// Update current language text in menu
+function updateMenuLangText() {
+    const langText = document.getElementById('current-lang-text');
+    if (langText) langText.innerText = (currentLang || 'kz').toUpperCase();
+}
+
+// Update current city text in menu
+function updateMenuCityText() {
+    const t = T[currentLang || 'kz'];
+    const cityName = t.cities[selectedCity] || selectedCity;
+    const cityText = document.getElementById('current-city-text');
+    if (cityText) cityText.innerText = cityName.toLowerCase();
 }
 
 function applyLang(lang) {
@@ -234,7 +454,8 @@ function applyLang(lang) {
         if (el) el.innerHTML = html;
     };
 
-    setText('announcement', t.announcement);
+    // Marquee is now hardcoded in HTML, skip localization for it
+    // setText('announcement', t.announcement);
     setText('hero-title', t.heroTitle);
     setText('hero-subtitle', t.heroSub);
     setText('section-title', t.sectionTitle);
@@ -268,14 +489,7 @@ function applyLang(lang) {
 
     // Update city buttons
     const cityBtns = document.querySelectorAll('.city-btn');
-    if (cityBtns.length > 0) {
-        cityBtns[0].innerText = `${t.cities.Astana} (1 500₸)`;
-        cityBtns[1].innerText = `${t.cities.Almaty} (1 500₸)`;
-        cityBtns[2].innerText = `${t.cities.Karaganda} (2 000₸)`;
-        cityBtns[3].innerText = `${t.cities.Shymkent} (2 000₸)`;
-        cityBtns[4].innerText = `${t.cities.Aktobe} (2 000₸)`;
-        cityBtns[5].innerText = `${t.cities.Other} (3 000₸)`;
-    }
+    // City buttons are now handled by static HTML (no dynamic text needed)
 
     const copyright = document.querySelector('.copyright');
     if (copyright) copyright.innerText = t.copyright;
@@ -726,14 +940,16 @@ window.removeFromCart = function (index) {
     renderCart();
 }
 
+// Open checkout with city confirmation
 window.checkoutCart = function () {
     if (cart.length === 0) return;
     pendingOrder = [...cart]; // Copy cart items
-    document.getElementById('cart-modal').style.display = 'none';
-    document.getElementById('city-modal').style.display = 'flex';
+    isCartCheckout = true;
+    startCheckout();
 }
 
 let pendingOrder = null;
+let isCartCheckout = false;
 
 window.buyItem = function (key) {
     const p = productsData[key];
@@ -750,74 +966,79 @@ window.buyItem = function (key) {
         size: size,
         type: p.type
     }];
-    document.getElementById('city-modal').style.display = 'flex';
+    isCartCheckout = false;
+    startCheckout();
 }
 
-window.selectCity = function (city) {
+window.deprecated_selectCity = function (city) {
+    console.warn('Deprecated function called');
+}
+
+// Proceed with order (send to WhatsApp)
+window.proceedWithOrder = function (city) {
     if (!pendingOrder || pendingOrder.length === 0) return;
 
-    // Calculate total price of items
+    // Calculate total price of items (excluding shipping as per request)
     const itemsTotal = pendingOrder.reduce((sum, item) => sum + Number(item.price), 0);
 
-    let shippingCost = 0;
-    let shippingText = "";
-
-    if (['Astana', 'Almaty'].includes(city)) {
-        shippingCost = 1500;
-        shippingText = "1 500₸";
-        if (itemsTotal >= 15000) {
-            shippingCost = 0;
-            shippingText = "ТЕГІН/БЕСПЛАТНО";
-        }
-    } else if (['Karaganda', 'Shymkent', 'Aktobe'].includes(city)) {
-        shippingCost = 2000;
-        shippingText = "2 000₸";
-    } else {
-        shippingCost = 3000;
-        shippingText = "2 500-3 000₸";
-    }
-
-    const t = T[currentLang || 'kz'];
-
-    // Construct message items
-    let itemsMsg = "";
-    pendingOrder.forEach(item => {
-        const sizeInfo = (item.type !== 'accessory' && item.size !== 'ONE') ? ` | ${t.waSize}: ${item.size}` : "";
-        itemsMsg += `- ${item.name}${sizeInfo}\n  ${t.waPrice}: ${Number(item.price).toLocaleString()} ₸\n\n`;
-    });
-
-    const cityDisplay = t.cities[city] || city;
-
-    let discountInfo = "";
-    let finalTotal = itemsTotal + shippingCost;
+    // Promo logic
+    let finalTotal = itemsTotal;
+    let promoText = "";
 
     if (activePromo) {
-        let discountAmount = 0;
         if (activePromo.type === 'percent') {
-            discountAmount = itemsTotal * (activePromo.value / 100);
-        } else {
-            discountAmount = activePromo.value;
+            const discount = Math.floor(itemsTotal * (activePromo.value / 100));
+            finalTotal = itemsTotal - discount;
+            promoText = `\n🎁 Promo: ${activePromo.code} (-${activePromo.value}%)`;
+        } else if (activePromo.type === 'fixed') {
+            finalTotal = Math.max(0, itemsTotal - activePromo.value);
+            promoText = `\n🎁 Promo: ${activePromo.code} (-${activePromo.value}₸)`;
         }
-        finalTotal = Math.max(0, itemsTotal - discountAmount) + shippingCost;
-        discountInfo = `\n${t.discount} (${activePromo.code}): -${discountAmount.toLocaleString()} ₸`;
     }
 
-    // Create clean message without emojis to avoid encoding issues
-    const msg = `${t.waGreeting}\n\n${itemsMsg}------------------\n${t.waCity}: ${cityDisplay}\n${t.waDelivery}: ${shippingText}${discountInfo}\n${t.total}: ${finalTotal.toLocaleString()} ₸`;
+    // Determine Language for Message
+    const isRu = (currentLang === 'ru');
 
-    // Save order to Firebase (each item separately)
+    // Build Message
+    let msg = isRu ? "Здравствуйте! Хочу оформить заказ:\n\n" : "Сәлеметсіз бе! Тапсырыс бергім келеді:\n\n";
+
     pendingOrder.forEach(item => {
-        window.db.ref('orders').push({
-            item: item.name,
-            productId: item.key,
-            size: item.size,
-            city: city,
-            price: item.price,
-            shipping: shippingText,
-            status: 'pending',
-            timestamp: new Date().toISOString()
-        });
+        msg += `▪️ ${item.name} (${item.size}) - ${item.price}₸\n`;
     });
+
+    const formatPriceMsg = (price) => price.toLocaleString('ru-RU') + ' ₸';
+
+    msg += `\n💰 Сумма: ${formatPriceMsg(itemsTotal)}`;
+    if (promoText) msg += promoText;
+    msg += `\n🏷 Итого: ${formatPriceMsg(finalTotal)}`;
+
+    // City name mapping
+    const cityNamesMsg = {
+        'Astana': 'Астана',
+        'Almaty': 'Алматы',
+        'Shymkent': 'Шымкент',
+        'Other': 'Другой город'
+    };
+    const prettyCity = cityNamesMsg[city] || city;
+
+    msg += isRu ? `\n📍 Город: ${prettyCity}` : `\n📍 Қала: ${prettyCity}`;
+    msg += isRu ? `\n📦 Доставка: уточнить у менеджера` : `\n📦 Жеткізу: менеджерден нақтылау`;
+
+    // Save order to Firebase
+    if (window.db) {
+        pendingOrder.forEach(item => {
+            window.db.ref('orders').push({
+                product: item.name,
+                size: item.size,
+                city: city,
+                price: item.price,
+                total: finalTotal,
+                promo: activePromo ? activePromo.code : null,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            });
+        });
+    }
 
     window.open(`https://wa.me/77055020133?text=${encodeURIComponent(msg)}`, '_blank');
 
@@ -829,13 +1050,11 @@ window.selectCity = function (city) {
         }
     }
 
-    closeModal('city-modal');
-
-    // If order came from cart, clear cart
-    if (cart.length > 0 && JSON.stringify(cart) === JSON.stringify(pendingOrder)) {
+    // Clear cart if this was a cart checkout
+    if (isCartCheckout) {
         cart = [];
-        localStorage.setItem('cart', '[]');
         updateCartCount();
+        localStorage.setItem('cart', '[]');
         renderCart();
     }
 
