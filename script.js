@@ -534,11 +534,26 @@ function initStore() {
     window.db.ref('promocodes').on('value', (snap) => {
         promoCodes = snap.val() || {};
 
-        // Auto-apply promo from URL
+        // Auto-apply promo logic
+        let promoCodeToApply = null;
+
+        // 1. Check URL Params (Search)
         const params = new URLSearchParams(window.location.search);
-        const urlPromo = params.get('promo');
-        if (urlPromo && !activePromo) {
-            applyPromo(urlPromo);
+        if (params.has('promo')) promoCodeToApply = params.get('promo');
+
+        // 2. Check Hash Params (fallback)
+        if (!promoCodeToApply && window.location.hash.includes('?')) {
+            const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+            if (hashParams.has('promo')) promoCodeToApply = hashParams.get('promo');
+        }
+
+        // 3. Fallback to LocalStorage
+        if (!promoCodeToApply) {
+            promoCodeToApply = localStorage.getItem('alpharaon_promo');
+        }
+
+        if (promoCodeToApply && !activePromo) {
+            applyPromo(promoCodeToApply);
         }
     });
 }
@@ -911,20 +926,38 @@ window.applyPromo = function (codeArg) {
 
     if (!code) return;
 
-    // Find promo
-    const promoKey = Object.keys(promoCodes).find(k => promoCodes[k].code === code);
+    // Find promo (Case insensitive check)
+    const promoKey = Object.keys(promoCodes).find(k =>
+        String(promoCodes[k].code).toUpperCase() === code
+    );
+
     if (promoKey) {
         const p = promoCodes[promoKey];
         if (p.limit && (p.used || 0) >= p.limit) {
             alert("This promo code has reached its usage limit!");
             activePromo = null;
+            localStorage.removeItem('alpharaon_promo');
             if (input) input.value = "";
             return;
         }
         activePromo = p;
+        // Persist promo
+        localStorage.setItem('alpharaon_promo', p.code);
+
         renderCart();
-        alert(t.promoApplied + "!");
-        if (input) input.value = activePromo.code;
+        // Only alert if manually applied (input exists)
+        if (!codeArg) {
+            alert(t.promoApplied + "!");
+        } else {
+            // If from URL, just show in console or silent success
+            console.log("Promo applied from URL:", p.code);
+        }
+
+        if (input) {
+            input.value = activePromo.code;
+            input.disabled = true;
+            input.style.borderColor = "#10b981";
+        }
     } else {
         if (!codeArg) {
             alert(t.invalidPromo);
