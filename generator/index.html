@@ -821,17 +821,58 @@
                 cloneLayer.style.transform = 'translate(-50%, -50%)';
             }
 
-            // 5. Manually copy canvas content (cloneNode doesn't copy canvas state)
+            // 5. Manually copy canvas content with GLOW baked in
             const cloneCanvas = clone.querySelector('canvas');
             if (cloneCanvas && originalCanvas) {
-                const ctx = cloneCanvas.getContext('2d');
-                cloneCanvas.width = originalCanvas.width;
-                cloneCanvas.height = originalCanvas.height;
-                ctx.drawImage(originalCanvas, 0, 0);
+                // Create a larger canvas to accommodate glow
+                const padding = 150; // Extra space for glow
+                const newWidth = originalCanvas.width + padding * 2;
+                const newHeight = originalCanvas.height + padding * 2;
 
-                // Copy the transform (scale) and filter (glow) style
+                cloneCanvas.width = newWidth;
+                cloneCanvas.height = newHeight;
+                const ctx = cloneCanvas.getContext('2d');
+
+                // Apply glow based on current setting
+                if (currentGlow === 'white') {
+                    // White glow
+                    ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+                    ctx.shadowBlur = 80;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                    // Draw multiple times for stronger glow
+                    ctx.drawImage(originalCanvas, padding, padding);
+                    ctx.shadowBlur = 40;
+                    ctx.drawImage(originalCanvas, padding, padding);
+                } else if (currentGlow === 'black') {
+                    // Black/dark shadow glow
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                    ctx.shadowBlur = 100;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 40;
+                    ctx.drawImage(originalCanvas, padding, padding);
+                    ctx.shadowBlur = 60;
+                    ctx.shadowOffsetY = 20;
+                    ctx.drawImage(originalCanvas, padding, padding);
+                } else {
+                    // Default shadow
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                    ctx.shadowBlur = 60;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 30;
+                    ctx.drawImage(originalCanvas, padding, padding);
+                }
+
+                // Final clean draw on top
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                ctx.drawImage(originalCanvas, padding, padding);
+
+                // Copy the transform (scale) style, remove filter since we baked it in
                 cloneCanvas.style.transform = originalCanvas.style.transform;
-                cloneCanvas.style.filter = originalCanvas.style.filter;
+                cloneCanvas.style.filter = 'none';
             }
 
             // 6. Style format for export
