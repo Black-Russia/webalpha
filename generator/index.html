@@ -331,6 +331,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            touch-action: none;
+            /* Important for mobile drag */
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .product-layer canvas {
@@ -432,7 +436,15 @@
             }
 
             .bg-text-front {
-                font-size: 12vw;
+                font-size: 11vw;
+                bottom: 7%;
+                letter-spacing: 1px;
+            }
+
+            .bg-text-sub {
+                font-size: 3vw;
+                bottom: 4%;
+                letter-spacing: 2px;
             }
         }
     </style>
@@ -501,7 +513,8 @@
 
         <div class="bg-text">ALPHA</div>
 
-        <div class="product-layer" id="productLayer" onmousedown="startDrag(event)">
+        <div class="product-layer" id="productLayer" onmousedown="startDrag(event)"
+            ontouchstart="startTouchDrag(event)">
             <canvas id="productCanvas"></canvas>
             <p id="placeholder" style="color:#444; font-size: 24px; position:absolute;">Перетащите сюда фото</p>
         </div>
@@ -698,6 +711,69 @@
             isDragging = false;
             document.removeEventListener('mousemove', drag);
             document.removeEventListener('mouseup', stopDrag);
+        }
+
+        // Touch Drag Logic (Mobile)
+        function startTouchDrag(e) {
+            if (e.touches.length === 1) {
+                // Single touch = drag
+                e.preventDefault();
+                isDragging = true;
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                initialLeft = layer.offsetLeft;
+                initialTop = layer.offsetTop;
+                document.addEventListener('touchmove', touchDrag, { passive: false });
+                document.addEventListener('touchend', stopTouchDrag);
+            } else if (e.touches.length === 2) {
+                // Two fingers = pinch zoom
+                e.preventDefault();
+                initialPinchDistance = getPinchDistance(e);
+                initialScale = scale;
+                document.addEventListener('touchmove', pinchZoom, { passive: false });
+                document.addEventListener('touchend', stopPinchZoom);
+            }
+        }
+
+        function touchDrag(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+            layer.style.left = (initialLeft + dx) + 'px';
+            layer.style.top = (initialTop + dy) + 'px';
+        }
+
+        function stopTouchDrag() {
+            isDragging = false;
+            document.removeEventListener('touchmove', touchDrag);
+            document.removeEventListener('touchend', stopTouchDrag);
+        }
+
+        // Pinch-to-Zoom (Mobile)
+        let initialPinchDistance = 0;
+        let initialScale = 1;
+
+        function getPinchDistance(e) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function pinchZoom(e) {
+            if (e.touches.length !== 2) return;
+            e.preventDefault();
+            const currentDistance = getPinchDistance(e);
+            const scaleFactor = currentDistance / initialPinchDistance;
+            scale = Math.max(0.1, Math.min(3, initialScale * scaleFactor));
+            canvasEl.style.transform = `scale(${scale})`;
+        }
+
+        function stopPinchZoom() {
+            document.removeEventListener('touchmove', pinchZoom);
+            document.removeEventListener('touchend', stopPinchZoom);
         }
 
         // Zoom Logic
