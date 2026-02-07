@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALPHARAON QR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Unbounded', sans-serif;
+            background: #0a0a0a;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 12px;
+            letter-spacing: 3px;
+            color: #444;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        .qr-card {
+            background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 100%);
+            border: 1px solid #222;
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8);
+            text-align: center;
+        }
+
+        .qr-wrapper {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 25px;
+        }
+
+        /* Hide the img, show only canvas */
+        #qrcode img {
+            display: none !important;
+        }
+
+        #qrcode canvas {
+            display: block !important;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 6px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .brand-sub {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: #444;
+        }
+
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        input {
+            padding: 14px 24px;
+            font-size: 14px;
+            font-family: inherit;
+            border: 1px solid #333;
+            border-radius: 10px;
+            background: #111;
+            color: white;
+            width: 300px;
+            text-align: center;
+            outline: none;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            padding: 14px 28px;
+            font-size: 11px;
+            font-family: inherit;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        button.primary {
+            background: #fff;
+            color: #000;
+        }
+
+        button.secondary {
+            background: #222;
+            color: #fff;
+            border: 1px solid #333;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+        }
+
+        .info {
+            margin-top: 25px;
+            color: #333;
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>QR Generator</h1>
+
+    <div class="qr-card">
+        <div class="qr-wrapper">
+            <div id="qrcode"></div>
+        </div>
+        <div class="brand-name">ALPHARAON</div>
+        <div class="brand-sub">PREMIUM STREETWEAR</div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="urlInput" value="https://alpharaon.com">
+        <div class="btn-row">
+            <button class="secondary" onclick="generateQR()">Обновить</button>
+            <button class="primary" onclick="downloadQR()">Скачать PNG</button>
+        </div>
+    </div>
+
+    <p class="info">QR-код сканируется и ведёт на сайт</p>
+
+    <script>
+        let qrcode = null;
+
+        function generateQR() {
+            const url = document.getElementById('urlInput').value;
+            const container = document.getElementById('qrcode');
+            container.innerHTML = '';
+
+            qrcode = new QRCode(container, {
+                text: url,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        function downloadQR() {
+            // Создаем временный контейнер для генерации QR высокого разрешения
+            const tempDiv = document.createElement('div');
+            const url = document.getElementById('urlInput').value;
+
+            // Параметры для высокого качества (4x)
+            const scale = 4;
+            const cardWidth = 600 * scale; // 2400px
+            const cardHeight = 600 * scale; // 2400px (было 650, уменьшили низ)
+
+            // Размеры элементов
+            const qrBoxSize = 350 * scale;
+            const qrBoxMarginTop = 70 * scale;
+            const qrPaddingInsideBox = 40 * scale;
+            const qrCodeSize = qrBoxSize - (qrPaddingInsideBox * 2);
+
+            // Генерируем QR нужного размера
+            new QRCode(tempDiv, {
+                text: url,
+                width: qrCodeSize,
+                height: qrCodeSize,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Ждем чуть-чуть, чтобы QR отрисовался
+            setTimeout(() => {
+                const qrCanvasRaw = tempDiv.querySelector('canvas');
+                if (!qrCanvasRaw) { alert('Ошибка генерации HQ QR'); return; }
+
+                // Создаем финальный канвас
+                const canvas = document.createElement('canvas');
+                canvas.width = cardWidth;
+                canvas.height = cardHeight;
+                const ctx = canvas.getContext('2d');
+
+                // 1. Фон (Темный градиент)
+                const gradient = ctx.createLinearGradient(0, 0, 0, cardHeight);
+                gradient.addColorStop(0, '#1a1a1a');
+                gradient.addColorStop(1, '#0d0d0d');
+                ctx.fillStyle = gradient;
+
+                // Скругленная карточка
+                roundRect(ctx, 0, 0, cardWidth, cardHeight, 48 * scale, true, false);
+
+                // Внутренняя обводка
+                ctx.strokeStyle = '#222222';
+                ctx.lineWidth = 2 * scale;
+                roundRect(ctx, 1 * scale, 1 * scale, cardWidth - (2 * scale), cardHeight - (2 * scale), 48 * scale, false, true);
+
+                // 2. Белый контейнер под QR
+                const qrBoxX = (cardWidth - qrBoxSize) / 2;
+                ctx.fillStyle = '#ffffff';
+                roundRect(ctx, qrBoxX, qrBoxMarginTop, qrBoxSize, qrBoxSize, 24 * scale, true, false);
+
+                // 3. Рисуем QR высокого разрешения
+                ctx.drawImage(qrCanvasRaw, qrBoxX + qrPaddingInsideBox, qrBoxMarginTop + qrPaddingInsideBox);
+
+                // 4. Текст ALPHARAON
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `900 ${48 * scale}px "Unbounded", sans-serif`;
+                ctx.textAlign = 'center';
+                // ctx.letterSpacing = '10px'; 
+                // Эмуляция letter-spacing вручную сложна, оставим стандартный рендеринг, он норм на высоком разрешении
+                ctx.fillText('ALPHARAON', cardWidth / 2, qrBoxMarginTop + qrBoxSize + (80 * scale));
+
+                // 5. Текст PREMIUM STREETWEAR
+                ctx.fillStyle = '#666666';
+                ctx.font = `700 ${18 * scale}px "Unbounded", sans-serif`;
+                ctx.fillText('PREMIUM STREETWEAR', cardWidth / 2, qrBoxMarginTop + qrBoxSize + (130 * scale));
+
+                // Скачивание
+                const link = document.createElement('a');
+                link.download = `alpharaon-qr-hq-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0); // Максимальное качество
+                link.click();
+            }, 100);
+        }
+
+        // Вспомогательная функция для рисования скругленных прямоугольников
+        function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+            if (typeof stroke === 'undefined') {
+                stroke = true;
+            }
+            if (typeof radius === 'undefined') {
+                radius = 5;
+            }
+            if (typeof radius === 'number') {
+                radius = { tl: radius, tr: radius, br: radius, bl: radius };
+            } else {
+                var defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
+                for (var side in defaultRadius) {
+                    radius[side] = radius[side] || defaultRadius[side];
+                }
+            }
+            ctx.beginPath();
+            ctx.moveTo(x + radius.tl, y);
+            ctx.lineTo(x + width - radius.tr, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+            ctx.lineTo(x + width, y + height - radius.br);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+            ctx.lineTo(x + radius.bl, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+            ctx.lineTo(x, y + radius.tl);
+            ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+            ctx.closePath();
+            if (fill) {
+                ctx.fill();
+            }
+            if (stroke) {
+                ctx.stroke();
+            }
+        }
+
+        window.onload = generateQR;
+    </script>
+</body>
+
+</html>
