@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>ALPHARAON Card Generator v2</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;900&display=swap');
+
+        body {
+            margin: 0;
+            background: #222;
+            font-family: 'Unbounded', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            color: white;
+            overflow: auto;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 100;
+            background: #333;
+            padding: 15px 20px;
+            border-radius: 12px;
+            max-width: 1080px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .control-group .group-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-right: 5px;
+        }
+
+        .divider {
+            width: 1px;
+            height: 30px;
+            background: #555;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: white;
+            color: black;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button.black-theme {
+            background: #000;
+            color: #fff;
+            border: 1px solid #333;
+        }
+
+        button.white-theme {
+            background: #fff;
+            color: #000;
+            border: 1px solid #ddd;
+        }
+
+        button.download-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        button.glow-btn {
+            padding: 8px 14px;
+            font-size: 11px;
+        }
+
+        button.glow-btn.active {
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        button.glow-white {
+            background: #fff;
+            color: #000;
+        }
+
+        button.glow-black {
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+        }
+
+        button.glow-off {
+            background: #666;
+            color: #fff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .card-container {
+            width: 1080px;
+            height: 1080px;
+            background: #1a1a1a;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            /* Default Dark Texture */
+            background-image:
+                radial-gradient(circle at 50% 0%, #333, #111),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            transition: background 0.3s;
+        }
+
+        /* Light Theme Override */
+        .card-container.light-mode {
+            background: #f5f5f5;
+            background-image:
+                radial-gradient(circle at 50% 0%, #fff, #ddd),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+
+        .card-container.light-mode .bg-text {
+            color: rgba(0, 0, 0, 0.03);
+        }
+
+        .card-container.light-mode .bg-text-front {
+            color: #000;
+            text-shadow: none;
+        }
+
+        .card-container.light-mode .bg-text-sub {
+            color: #888;
+        }
+
+        .card-container.light-mode .grid-overlay {
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+        }
+
+        .card-container.light-mode .center-guides .guide-line {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .card-container.light-mode .center-guides .safe-zone {
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Huge Background Text */
+        .bg-text {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 220px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.03);
+            white-space: nowrap;
+            letter-spacing: -5px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .bg-text-front {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 80px;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            z-index: 20;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+        }
+
+        .bg-text-sub {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            font-weight: 200;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* Checkbox styling */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #4CAF50;
+        }
+
+        /* Slider styling */
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ccc;
+            font-size: 11px;
+        }
+
+        .slider-wrapper input[type="range"] {
+            width: 80px;
+            cursor: pointer;
+            accent-color: #4CAF50;
+        }
+
+        /* Center Guides */
+        .center-guides {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 15;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .center-guides.hidden {
+            opacity: 0;
+        }
+
+        .center-guides .guide-line {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .center-guides .guide-line.horizontal {
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+        }
+
+        .center-guides .guide-line.vertical {
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+        }
+
+        .center-guides .safe-zone {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 65%;
+            height: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+        }
+
+        .center-guides .zone-label {
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        .card-container.light-mode .center-guides .zone-label {
+            color: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Product Image Container */
+        .product-layer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            z-index: 10;
+            cursor: move;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .product-layer canvas {
+            max-width: 100%;
+            max-height: 100%;
+            filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.6));
+            transition: transform 0.1s;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 108px 108px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .spotlight {
+            position: absolute;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1200px) {
+            .card-container {
+                width: 90vw;
+                height: 90vw;
+                max-width: 1080px;
+                max-height: 1080px;
+            }
+
+            .bg-text {
+                font-size: 20vw;
+            }
+
+            .bg-text-front {
+                font-size: 8vw;
+                bottom: 8%;
+            }
+
+            .bg-text-sub {
+                font-size: 2vw;
+                bottom: 5%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 10px;
+                gap: 8px;
+            }
+
+            button {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+            .checkbox-wrapper {
+                font-size: 10px;
+            }
+
+            .bg-text-front {
+                font-size: 10vw;
+                letter-spacing: 3px;
+            }
+
+            .bg-text-sub {
+                font-size: 2.5vw;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .controls {
+                gap: 5px;
+            }
+
+            button {
+                padding: 6px 10px;
+                font-size: 10px;
+            }
+
+            .bg-text-front {
+                font-size: 12vw;
+            }
+        }
+    </style>
+    <!-- html2canvas for saving -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+
+<body>
+
+    <div class="controls">
+        <!-- Row 1: Main Actions -->
+        <div class="control-row">
+            <button onclick="document.getElementById('upload').click()">📷 Загрузить фото</button>
+            <input type="file" id="upload" accept="image/*" onchange="loadImage(event)">
+
+            <div class="control-group">
+                <span class="group-label">Фон:</span>
+                <button class="black-theme" onclick="setTheme('dark')">■ Черный</button>
+                <button class="white-theme" onclick="setTheme('light')">□ Белый</button>
+            </div>
+
+            <div class="control-group">
+                <span class="group-label">Подсветка:</span>
+                <button class="glow-btn glow-white" onclick="setGlow('white')">☀</button>
+                <button class="glow-btn glow-black" onclick="setGlow('black')">●</button>
+                <button class="glow-btn glow-off" onclick="setGlow('none')">✕</button>
+            </div>
+
+            <button class="download-btn" onclick="downloadCard()">💾 Скачать PNG</button>
+        </div>
+
+        <!-- Row 2: Settings -->
+        <div class="control-row">
+            <div class="control-group">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="removeWhiteBg" checked>
+                    Убирать белый фон
+                </label>
+                <label class="slider-wrapper" id="thresholdWrapper">
+                    <span>Порог:</span>
+                    <input type="range" id="bgThreshold" min="200" max="255" value="240">
+                    <span id="thresholdValue">240</span>
+                </label>
+            </div>
+
+            <div class="control-group">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="showGuides" checked onchange="toggleGuides()">
+                    Направляющие
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-container" id="canvas">
+        <div class="grid-overlay"></div>
+        <div class="spotlight"></div>
+
+        <!-- Center Guides -->
+        <div class="center-guides" id="centerGuides">
+            <div class="guide-line horizontal"></div>
+            <div class="guide-line vertical"></div>
+            <div class="safe-zone"></div>
+            <div class="zone-label">Оптимальная зона</div>
+        </div>
+
+        <div class="bg-text">ALPHA</div>
+
+        <div class="product-layer" id="productLayer" onmousedown="startDrag(event)">
+            <canvas id="productCanvas"></canvas>
+            <p id="placeholder" style="color:#444; font-size: 24px; position:absolute;">Перетащите сюда фото</p>
+        </div>
+
+        <div class="bg-text-front">ALPHARAON</div>
+        <div class="bg-text-sub">PREMIUM STREETWEAR</div>
+    </div>
+
+    <script>
+        let scale = 1;
+        let canvasEl = document.getElementById('productCanvas');
+        let ctx = canvasEl.getContext('2d');
+        let layer = document.getElementById('productLayer');
+
+        // Threshold slider update
+        document.getElementById('bgThreshold').addEventListener('input', function () {
+            document.getElementById('thresholdValue').textContent = this.value;
+        });
+
+        function toggleGuides() {
+            const guides = document.getElementById('centerGuides');
+            const showGuides = document.getElementById('showGuides').checked;
+            guides.classList.toggle('hidden', !showGuides);
+        }
+
+        let currentGlow = 'none';
+        function setGlow(type) {
+            currentGlow = type;
+            const canvas = document.getElementById('productCanvas');
+
+            // Remove active class from all glow buttons
+            document.querySelectorAll('.glow-btn').forEach(btn => btn.classList.remove('active'));
+
+            if (type === 'white') {
+                canvas.style.filter = 'drop-shadow(0 30px 60px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 40px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 80px rgba(255, 255, 255, 0.2))';
+                document.querySelector('.glow-white').classList.add('active');
+            } else if (type === 'black') {
+                canvas.style.filter = 'drop-shadow(0 30px 60px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 50px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 100px rgba(0, 0, 0, 0.4))';
+                document.querySelector('.glow-black').classList.add('active');
+            } else {
+                canvas.style.filter = 'drop-shadow(0 30px 60px rgba(0, 0, 0, 0.6))';
+                document.querySelector('.glow-off').classList.add('active');
+            }
+        }
+
+        function setTheme(theme) {
+            const container = document.getElementById('canvas');
+            if (theme === 'light') container.classList.add('light-mode');
+            else container.classList.remove('light-mode');
+        }
+
+        function loadImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        // Check if white background removal is enabled
+                        const shouldRemoveWhite = document.getElementById('removeWhiteBg').checked;
+                        if (shouldRemoveWhite) {
+                            removeWhiteBackground(img);
+                        } else {
+                            // Just draw the image without removing background
+                            canvasEl.width = img.width;
+                            canvasEl.height = img.height;
+                            ctx.drawImage(img, 0, 0);
+                        }
+                        document.getElementById('placeholder').style.display = 'none';
+
+                        // Auto-fit image to optimal size (65% of card)
+                        autoFitImage();
+                    };
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function autoFitImage() {
+            const container = document.getElementById('canvas');
+            const containerSize = Math.min(container.offsetWidth, container.offsetHeight);
+            const targetSize = containerSize * 0.65; // 65% of card size - optimal for showing branding
+
+            const imgWidth = canvasEl.width;
+            const imgHeight = canvasEl.height;
+            const maxDimension = Math.max(imgWidth, imgHeight);
+
+            // Calculate scale to fit image to target size
+            scale = targetSize / maxDimension;
+
+            // Apply scale
+            canvasEl.style.transform = `scale(${scale})`;
+
+            // Reset position to center
+            layer.style.left = '';
+            layer.style.top = '';
+            layer.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function removeWhiteBackground(img) {
+            canvasEl.width = img.width;
+            canvasEl.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            const threshold = parseInt(document.getElementById('bgThreshold').value);
+            const imageData = ctx.getImageData(0, 0, canvasEl.width, canvasEl.height);
+            const data = imageData.data;
+            const width = canvasEl.width;
+            const height = canvasEl.height;
+
+            // First pass: mark pixels as background or foreground
+            const isBackground = new Uint8Array(width * height);
+
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const pixelIndex = i / 4;
+
+                // Check if pixel is near-white (background candidate)
+                // Also check that colors are similar (not colored)
+                const maxChannel = Math.max(r, g, b);
+                const minChannel = Math.min(r, g, b);
+                const isNearWhite = r > threshold && g > threshold && b > threshold;
+                const isNeutral = (maxChannel - minChannel) < 30; // Low color saturation
+
+                if (isNearWhite && isNeutral) {
+                    isBackground[pixelIndex] = 1;
+                }
+            }
+
+            // Second pass: apply transparency with soft edges
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const pixelIndex = y * width + x;
+                    const i = pixelIndex * 4;
+
+                    if (isBackground[pixelIndex]) {
+                        // Check if near edge (has non-background neighbor)
+                        let nearEdge = false;
+                        const edgeRadius = 2;
+
+                        for (let dy = -edgeRadius; dy <= edgeRadius && !nearEdge; dy++) {
+                            for (let dx = -edgeRadius; dx <= edgeRadius && !nearEdge; dx++) {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                    const neighborIndex = ny * width + nx;
+                                    if (!isBackground[neighborIndex]) {
+                                        nearEdge = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (nearEdge) {
+                            // Soft edge: partial transparency
+                            data[i + 3] = 100; // Semi-transparent
+                        } else {
+                            // Full background: fully transparent
+                            data[i + 3] = 0;
+                        }
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // Drag Logic
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+
+        function startDrag(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = layer.offsetLeft;
+            initialTop = layer.offsetTop;
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            layer.style.left = (initialLeft + dx) + 'px';
+            layer.style.top = (initialTop + dy) + 'px';
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        // Zoom Logic
+        document.getElementById('canvas').addEventListener('wheel', function (e) {
+            e.preventDefault();
+            if (e.deltaY < 0) scale += 0.05;
+            else scale = Math.max(0.1, scale - 0.05);
+            canvasEl.style.transform = `scale(${scale})`;
+        });
+
+        // Download
+        function downloadCard() {
+            const original = document.getElementById('canvas');
+            const originalCanvas = document.getElementById('productCanvas');
+            const originalLayer = document.getElementById('productLayer');
+
+            // 1. Clone the node
+            const clone = original.cloneNode(true);
+
+            // 2. REMOVE center-guides from clone (so they don't appear in final image)
+            const guidesInClone = clone.querySelector('.center-guides');
+            if (guidesInClone) {
+                guidesInClone.remove();
+            }
+
+            // 3. Force clone to exact 1080x1080 dimensions
+            clone.style.width = '1080px';
+            clone.style.height = '1080px';
+            clone.style.maxWidth = 'none';
+            clone.style.maxHeight = 'none';
+
+            // 4. Copy product layer position correctly
+            const cloneLayer = clone.querySelector('.product-layer');
+            if (cloneLayer && originalLayer) {
+                // Get computed position relative to container
+                const containerRect = original.getBoundingClientRect();
+                const layerRect = originalLayer.getBoundingClientRect();
+
+                // Calculate position as percentage of container, then apply to 1080px
+                const leftPercent = (layerRect.left - containerRect.left + layerRect.width / 2) / containerRect.width;
+                const topPercent = (layerRect.top - containerRect.top + layerRect.height / 2) / containerRect.height;
+
+                cloneLayer.style.left = (leftPercent * 1080) + 'px';
+                cloneLayer.style.top = (topPercent * 1080) + 'px';
+                cloneLayer.style.transform = 'translate(-50%, -50%)';
+            }
+
+            // 5. Manually copy canvas content (cloneNode doesn't copy canvas state)
+            const cloneCanvas = clone.querySelector('canvas');
+            if (cloneCanvas && originalCanvas) {
+                const ctx = cloneCanvas.getContext('2d');
+                cloneCanvas.width = originalCanvas.width;
+                cloneCanvas.height = originalCanvas.height;
+                ctx.drawImage(originalCanvas, 0, 0);
+
+                // Copy the transform (scale) and filter (glow) style
+                cloneCanvas.style.transform = originalCanvas.style.transform;
+                cloneCanvas.style.filter = originalCanvas.style.filter;
+            }
+
+            // 6. Style format for export
+            clone.style.position = 'absolute';
+            clone.style.top = '0';
+            clone.style.left = '0';
+            clone.style.margin = '0';
+            clone.style.boxShadow = 'none';
+            clone.style.zIndex = '-9999';
+
+            // 7. Append to body
+            document.body.appendChild(clone);
+
+            // 8. Capture
+            html2canvas(clone, {
+                scale: 1,
+                backgroundColor: null,
+                useCORS: true,
+                width: 1080,
+                height: 1080,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: 1080,
+                windowHeight: 1080
+            }).then(canvas => {
+                document.body.removeChild(clone);
+                const link = document.createElement('a');
+                link.download = 'alpharaon-card-' + Date.now() + '.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+
+</html>
